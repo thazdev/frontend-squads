@@ -1,9 +1,5 @@
-import Layout from '../components/Layout'
 
 export default function Squads() {
-  return (
-    <Layout>
-      <h1 className="text-3xl font-bold">Bem-vindo ao Gerenciador de Squads</h1>
-    </Layout>
-  )
+  return <h1 className="text-2xl font-bold">Gerenciar Squads</h1>
 }
+
