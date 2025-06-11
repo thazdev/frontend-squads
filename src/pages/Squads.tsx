@@ -1,5 +1,7 @@
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { useState } from "react";
+import { FiPlus } from "react-icons/fi";
+import AppModal from "../components/AppModal";
 
 const GET_SQUADS = gql`
   query GetSquads {
@@ -25,17 +27,15 @@ const CREATE_SQUAD = gql`
   }
 `;
 
-/* ---------- Componente ---------- */
 export default function Squads() {
-  /* state do modal */
   const [isOpen, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
+  const [goal, setGoal] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
-  /* query de listagem */
   const { data, loading, error } = useQuery(GET_SQUADS);
 
-  /* mutation de criação */
   const [createSquad, { loading: creating }] = useMutation(CREATE_SQUAD, {
     update(cache, { data }) {
       if (!data) return;
@@ -48,7 +48,10 @@ export default function Squads() {
       });
     },
     onError(err) {
-      alert(err.message);
+      setErrorMsg(err.message);
+    },
+    onCompleted() {
+      setErrorMsg("");
     },
   });
 
@@ -58,23 +61,24 @@ export default function Squads() {
     });
     setName("");
     setDesc("");
+    setGoal("");
     setOpen(false);
   }
 
-  /* render */
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold text-gray-800">Squads</h2>
+
         <button
           onClick={() => setOpen(true)}
-          className="px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow"
         >
-          + Novo Squad
+          <FiPlus className="text-xl" />
+          Novo Squad
         </button>
       </div>
 
-      {/* conteúdo */}
       {loading && <p>Carregando...</p>}
       {error && <p className="text-red-600">{error.message}</p>}
       {!loading && data?.squads?.length === 0 && (
@@ -90,49 +94,64 @@ export default function Squads() {
             <h3 className="text-lg font-medium">{squad.name}</h3>
             <p className="text-sm text-gray-600">{squad.description}</p>
             <span className="text-xs text-gray-400">
-              Criado em {new Date(squad.createdAt).toLocaleDateString()}
+              Criado em{" "}
+              {new Date(squad.createdAt).toLocaleDateString("pt-BR")}
             </span>
           </div>
         ))}
       </div>
 
-      {/* modal */}
-      {isOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white p-6 rounded-lg shadow w-full max-w-sm space-y-4">
-            <h2 className="text-lg font-semibold">Criar Squad</h2>
-
+      <AppModal title="Novo Squad" open={isOpen} onClose={() => setOpen(false)}>
+        <div className="space-y-5">
+          <div>
+            <label className="text-sm font-medium text-gray-700">Nome *</label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Nome"
-              className="w-full border rounded px-3 py-2"
+              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-1 focus:ring-blue-500"
             />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700">Descrição</label>
             <textarea
+              rows={2}
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
-              placeholder="Descrição"
-              className="w-full border rounded px-3 py-2 h-24"
+              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 resize-none focus:ring-1 focus:ring-blue-500"
             />
-
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setOpen(false)}
-                className="px-3 py-1.5 border rounded"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={!name.trim() || creating}
-                className="px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-              >
-                {creating ? "Salvando..." : "Salvar"}
-              </button>
-            </div>
           </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700">Objetivo</label>
+            <textarea
+              rows={2}
+              value={goal}
+              onChange={(e) => setGoal(e.target.value)}
+              placeholder="Ex.: entregar MVP em 2 meses"
+              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 resize-none focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+
+          {errorMsg && <p className="text-sm text-red-600">{errorMsg}</p>}
+
+          <footer className="flex justify-end gap-3 pt-2">
+            <button
+              onClick={() => setOpen(false)}
+              className="px-5 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-100"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={!name.trim() || creating}
+              className="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
+            >
+              {creating ? "Salvando…" : "Salvar"}
+            </button>
+          </footer>
         </div>
-      )}
+      </AppModal>
     </div>
   );
 }
