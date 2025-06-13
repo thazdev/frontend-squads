@@ -1,7 +1,7 @@
 /* src/pages/Squads.tsx */
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { useMemo, useState } from "react";
-import { FiPlus, FiSearch, FiUsers, FiX } from "react-icons/fi";
+import { FiPlus, FiSearch, FiTrash, FiUsers, FiX } from "react-icons/fi";
 import AppModal from "../components/AppModal";
 
 /* ────────── QUERIES & MUTATIONS ────────── */
@@ -29,7 +29,7 @@ const GET_SQUAD_MEMBERS = gql`
 `;
 
 const GET_COLLABORATORS = gql`
-  query {
+  query GetCollaborators {
     collaborators {
       id
       name
@@ -47,6 +47,12 @@ const CREATE_SQUAD = gql`
       memberIds
       createdAt
     }
+  }
+`;
+
+const DELETE_SQUAD = gql`
+  mutation DeleteSquad($id: ID!) {
+    deleteSquad(id: $id)
   }
 `;
 
@@ -84,7 +90,10 @@ export default function Squads() {
 
   /* ---------- data ---------- */
   const { data: squadData, loading, error } = useQuery(GET_SQUADS);
-  const { data: collabData } = useQuery(GET_COLLABORATORS);
+  const { data: collabData, refetch: refetchCollabs } = useQuery(
+    GET_COLLABORATORS,
+    { fetchPolicy: "cache-and-network" }
+  );
 
   /* ---------- create squad ---------- */
   const [createSquad, { loading: creating }] = useMutation(CREATE_SQUAD, {
@@ -99,6 +108,21 @@ export default function Squads() {
       });
     },
     onError: (e) => setErrorMsg(e.message),
+    onCompleted: () => {
+      setName("");
+      setDesc("");
+      setGoal("");
+      setMembers([]);
+      setMemberSearch("");
+      setOpenCreate(false);
+      refetchCollabs();
+    },
+  });
+
+  /* ---------- delete squad ---------- */
+  const [deleteSquad, { loading: deleting }] = useMutation(DELETE_SQUAD, {
+    refetchQueries: [{ query: GET_SQUADS }],
+    awaitRefetchQueries: true,
   });
 
   async function handleSave() {
@@ -112,12 +136,6 @@ export default function Squads() {
         },
       },
     });
-    setName("");
-    setDesc("");
-    setGoal("");
-    setMembers([]);
-    setMemberSearch("");
-    setOpenCreate(false);
   }
 
   /* ---------- filter squads ---------- */
@@ -152,6 +170,8 @@ export default function Squads() {
 
   /* ---------- details modal ---------- */
   const [detail, setDetail] = useState<any | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
   const { data: membersData, refetch: refetchMembers } = useQuery(
     GET_SQUAD_MEMBERS,
     { variables: { squadId: detail?.id ?? "" }, skip: !detail }
@@ -330,10 +350,11 @@ export default function Squads() {
       <AppModal
         title={detail?.name ?? ""}
         open={!!detail}
-        maxWidth="max-w-2xl" /* modal maior */
+        maxWidth="max-w-2xl"
         onClose={() => {
           setDetail(null);
           setAddSearch("");
+          setConfirmDelete(false);
         }}
       >
         {detail && (
@@ -347,6 +368,44 @@ export default function Squads() {
               <p className="text-purple-700 whitespace-pre-line">
                 🎯 {detail.goal}
               </p>
+            )}
+
+            {/* ações do squad */}
+            <div className="flex justify-end">
+              <button
+                onClick={() => setConfirmDelete(true)}
+                className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800"
+              >
+                <FiTrash /> Excluir Squad
+              </button>
+            </div>
+
+            {confirmDelete && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center justify-between">
+                <span className="text-sm text-red-700">
+                  Tem certeza que deseja excluir este squad?
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setConfirmDelete(false)}
+                    className="px-3 py-1 text-sm rounded-lg border border-gray-300 bg-white hover:bg-gray-100"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={async () => {
+                      await deleteSquad({ variables: { id: detail.id } });
+                      setDetail(null);
+                      setConfirmDelete(false);
+                      refetchCollabs();
+                    }}
+                    disabled={deleting}
+                    className="px-4 py-1 text-sm rounded-lg bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
+                  >
+                    {deleting ? "Excluindo…" : "Confirmar"}
+                  </button>
+                </div>
+              </div>
             )}
 
             {/* membros existentes */}
@@ -371,13 +430,13 @@ export default function Squads() {
                                 memberId: m.id,
                               },
                             });
-                            /* atualiza estado detail para refletir mudanças */
                             setDetail({
                               ...detail,
                               memberIds:
                                 res.data?.removeMemberFromSquad.memberIds,
                             });
                             await refetchMembers();
+                            await refetchCollabs();
                           }}
                           title="Remover"
                           className="text-red-600 hover:text-red-800 p-1 opacity-0 group-hover:opacity-100"
@@ -426,12 +485,12 @@ export default function Squads() {
                               memberId: c.id,
                             },
                           });
-                          /* atualiza estado detail */
                           setDetail({
                             ...detail,
                             memberIds: res.data?.addMemberToSquad.memberIds,
                           });
                           await refetchMembers();
+                          await refetchCollabs();
                           setAddSearch("");
                         }}
                         title="Adicionar"
