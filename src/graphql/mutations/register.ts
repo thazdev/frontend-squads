@@ -5,7 +5,6 @@ export const REGISTER_MUTATION = gql`
     register(name: $name, email: $email, password: $password) {
       token
       user {
-        _key
         name
         email
       }
