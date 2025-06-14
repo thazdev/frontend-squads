@@ -20,7 +20,6 @@ export default function TaskFilter({
   responsibleId,
   onChange,
 }: Props) {
-  /* estado local antes de aplicar  */
   const [localSquad, setLocalSquad] = useState(squadId);
   const [localResp, setLocalResp] = useState(responsibleId);
 
@@ -50,14 +49,13 @@ export default function TaskFilter({
         leaveTo="opacity-0 translate-y-1"
       >
         <Popover.Panel className="absolute right-0 z-50 mt-2 w-72 bg-white border border-gray-200 rounded-xl shadow-lg p-4 space-y-4">
-          {/* SQUAD */}
           <div className="space-y-1">
             <label className="block text-xs font-medium text-gray-600">
               Squad
             </label>
             <Listbox value={localSquad} onChange={setLocalSquad}>
               <div className="relative">
-                <Listbox.Button className="w-full border rounded px-3 py-1.5 text-left text-sm">
+                <Listbox.Button className="w-full border border-gray-400 rounded px-3 py-1.5 text-left text-sm">
                   {localSquad
                     ? squads.find((s) => s.id === localSquad)?.name
                     : "Todos"}
@@ -68,7 +66,7 @@ export default function TaskFilter({
                   leaveFrom="opacity-100"
                   leaveTo="opacity-0"
                 >
-                  <Listbox.Options className="absolute z-10 mt-1 w-full bg-white border rounded shadow">
+                  <Listbox.Options className="absolute z-10 mt-1 w-full bg-white border border-gray-400 rounded shadow">
                     <Listbox.Option
                       key="all"
                       value=""
@@ -98,7 +96,7 @@ export default function TaskFilter({
             </label>
             <Listbox value={localResp} onChange={setLocalResp}>
               <div className="relative">
-                <Listbox.Button className="w-full border rounded px-3 py-1.5 text-left text-sm">
+                <Listbox.Button className="w-full border border-gray-400 rounded px-3 py-1.5 text-left text-sm">
                   {localResp
                     ? collaborators.find((c) => c.id === localResp)?.name
                     : "Todos"}
@@ -109,7 +107,7 @@ export default function TaskFilter({
                   leaveFrom="opacity-100"
                   leaveTo="opacity-0"
                 >
-                  <Listbox.Options className="absolute z-10 mt-1 w-full bg-white border rounded shadow">
+                  <Listbox.Options className="absolute z-10 mt-1 w-full bg-white border border-gray-400 rounded shadow">
                     <Listbox.Option
                       key="all"
                       value=""
@@ -142,7 +140,7 @@ export default function TaskFilter({
             </button>
             <button
               onClick={apply}
-              className="px-3 py-1.5 bg-purple-500 hover:bg-purple-600 text-white rounded text-xs"
+              className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs"
             >
               Aplicar
             </button>

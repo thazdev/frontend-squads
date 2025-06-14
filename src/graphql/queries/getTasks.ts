@@ -1,13 +1,21 @@
 import { gql } from "@apollo/client";
-const GET_TASKS = gql`
-  query ($squadId: ID!, $assigneeId: ID) {
-    tasks(squadId: $squadId, assigneeId: $assigneeId) {
+
+export const GET_TASK = gql`
+  query GetTask($id: ID!) {
+    task(id: $id) {
       id
       title
+      description
       status
       priority
-      assignee { id name } 
+      impact
+      difficulty
+      assignee {
+        id
+        name
+      }
+      createdAt
+      updatedAt
     }
   }
 `;
-
