@@ -12,15 +12,11 @@ import Squads from "./pages/Squads";
 export default function App() {
   return (
     <Routes>
-      {/* públicas */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-
-      {/* protegidas */}
       <Route
   path="/"
   element={
-    /* sem PrivateRoute */
     <Layout>
       <Home />
     </Layout>
