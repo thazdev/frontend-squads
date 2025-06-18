@@ -21,11 +21,16 @@ export default function LoginForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("🔁 handleSubmit chamado");
     login({ variables: { email, password: senha } });
   };
 
   return (
-    <form className="space-y-6" onSubmit={handleSubmit}>
+    <form
+      className="space-y-6"
+      data-testid="login-form"
+      onSubmit={handleSubmit}
+    >
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Email

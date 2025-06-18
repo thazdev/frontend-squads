@@ -199,10 +199,36 @@ export default function Squads() {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold text-gray-800">Squads</h2>
         <button
+          data-testid="open-create-squad"
           onClick={() => setOpenCreate(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow"
+          /* … */
         >
-          <FiPlus className="text-xl" /> Novo Squad
+          <FiPlus /> Novo Squad
+        </button>
+
+        <input
+          data-testid="squad-name"
+          /* restante */
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <textarea
+          data-testid="squad-description"
+          /* … */
+          value={desc}
+        />
+        <textarea
+          data-testid="squad-goal"
+          /* … */
+          value={goal}
+        />
+
+        <button
+          data-testid="save-squad"
+          onClick={handleSave}
+          /* … */
+        >
+          {creating ? "Salvando…" : "Salvar"}
         </button>
       </div>
 
@@ -257,19 +283,22 @@ export default function Squads() {
         onClose={() => setOpenCreate(false)}
       >
         <div className="space-y-5">
-          {/* Campos */}
+          {/* Campo Nome */}
           <div>
             <label className="text-sm font-medium">Nome *</label>
             <input
+              data-testid="squad-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="mt-1 w-full border rounded-lg px-3 py-2"
             />
           </div>
 
+          {/* Campo Descrição */}
           <div>
             <label className="text-sm font-medium">Descrição</label>
             <textarea
+              data-testid="squad-description"
               rows={2}
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
@@ -277,9 +306,11 @@ export default function Squads() {
             />
           </div>
 
+          {/* Campo Objetivo */}
           <div>
             <label className="text-sm font-medium">Objetivo</label>
             <textarea
+              data-testid="squad-goal"
               rows={2}
               value={goal}
               onChange={(e) => setGoal(e.target.value)}
@@ -288,46 +319,10 @@ export default function Squads() {
             />
           </div>
 
-          {/* Seleção de membros */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Membros</label>
-
-            <div className="relative">
-              <FiSearch className="absolute top-2.5 left-3 text-gray-400" />
-              <input
-                value={memberSearch}
-                onChange={(e) => setMemberSearch(e.target.value)}
-                placeholder="Pesquisar colaborador…"
-                className="pl-10 pr-3 py-2 w-full border rounded-lg text-sm"
-              />
-            </div>
-
-            <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto pt-1">
-              {filteredMembers.map((c: any) => {
-                const selected = members.includes(c.id);
-                return (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => toggleMember(c.id)}
-                    className={`px-3 py-1 rounded-full text-sm border transition ${
-                      selected
-                        ? "bg-blue-600 border-blue-600 text-white"
-                        : "bg-gray-100 border-gray-300 hover:bg-gray-200"
-                    }`}
-                  >
-                    {c.name}
-                  </button>
-                );
-              })}
-              {filteredMembers.length === 0 && (
-                <span className="text-xs text-gray-400">Nenhum resultado.</span>
-              )}
-            </div>
-          </div>
-
+          {/* Erro (se houver) */}
           {errorMsg && <p className="text-sm text-red-600">{errorMsg}</p>}
 
+          {/* Botões de ação */}
           <footer className="flex justify-end gap-3 pt-2">
             <button
               onClick={() => setOpenCreate(false)}
@@ -336,6 +331,7 @@ export default function Squads() {
               Cancelar
             </button>
             <button
+              data-testid="save-squad"
               onClick={handleSave}
               disabled={!name.trim() || creating}
               className="px-6 py-2 rounded-lg bg-blue-600 text-white disabled:opacity-50"

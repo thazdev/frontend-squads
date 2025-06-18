@@ -235,6 +235,7 @@ export default function Kanban() {
           />
 
           <button
+            data-testid="open-create-task"
             onClick={() => {
               setSquadIdModal(activeSquadId || "");
               setOpen(true);
@@ -256,9 +257,17 @@ export default function Kanban() {
 
             <div className="space-y-3 min-h-[60px]">
               {columns[col].map((t) => (
-                <Link to={`/tasks/${t.id}`} key={t.id} className="block">
+                <Link
+                  to={`/tasks/${t.id}`}
+                  key={t.id}
+                  data-testid={`kanban-task-${t.title}`}
+                  className="block"
+                >
                   <article className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition flex flex-col p-4 space-y-3 max-w-[260px] w-full">
-                    <h4 className="font-medium text-sm text-gray-900 line-clamp-2">
+                    <h4
+                      data-testid="kanban-task-title"
+                      className="font-medium text-sm text-gray-900 line-clamp-2"
+                    >
                       {t.title}
                     </h4>
 
@@ -357,12 +366,18 @@ export default function Kanban() {
       </div>
 
       {/* modal Nova Task */}
-      <AppModal title="Nova Task" open={open} onClose={() => setOpen(false)}>
+      <AppModal
+        data-testid="open-create-task"
+        title="Nova Task"
+        open={open}
+        onClose={() => setOpen(false)}
+      >
         <div className="space-y-5">
           {/* Squad */}
           <div>
             <label className="text-sm font-medium text-gray-700">Squad *</label>
             <select
+              data-testid="task-squad"
               value={squadIdModal}
               onChange={(e) => setSquadIdModal(e.target.value)}
               className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50"
@@ -381,6 +396,7 @@ export default function Kanban() {
               Título *
             </label>
             <input
+              data-testid="task-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-1 focus:ring-blue-500"
@@ -393,6 +409,7 @@ export default function Kanban() {
               Descrição
             </label>
             <textarea
+              data-testid="task-desc"
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -406,6 +423,7 @@ export default function Kanban() {
               Prioridade
             </label>
             <select
+              data-testid="task-priority"
               value={priority}
               onChange={(e) => setPriority(e.target.value as any)}
               className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50"
@@ -445,6 +463,7 @@ export default function Kanban() {
               Cancelar
             </button>
             <button
+              data-testid="save-task"
               onClick={() =>
                 createTask({
                   variables: {

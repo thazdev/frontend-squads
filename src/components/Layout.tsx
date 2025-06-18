@@ -41,6 +41,7 @@ export default function Layout() {
           </Link>
           <Link
             to="/squads"
+            data-testid="nav-squads"
             className="flex items-center gap-1 hover:text-blue-600"
           >
             <FiGrid /> Squads
