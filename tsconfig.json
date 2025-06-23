@@ -1,6 +1,13 @@
 {
   "compilerOptions": {
-    "types": ["@playwright/test", "node"]
+    "types": ["@playwright/test", "node"],
+    "target": "es2018",
+    "lib": ["dom", "es2018"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true
   },
   "include": ["src", "tests"],
   "references": [

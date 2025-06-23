@@ -1,4 +1,4 @@
-import { Page, expect } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 
 export async function createSquad(page: Page) {
   const ts = Date.now();

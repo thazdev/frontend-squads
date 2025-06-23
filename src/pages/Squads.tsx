@@ -201,34 +201,9 @@ export default function Squads() {
         <button
           data-testid="open-create-squad"
           onClick={() => setOpenCreate(true)}
-          /* … */
+          className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg shadow"
         >
           <FiPlus /> Novo Squad
-        </button>
-
-        <input
-          data-testid="squad-name"
-          /* restante */
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <textarea
-          data-testid="squad-description"
-          /* … */
-          value={desc}
-        />
-        <textarea
-          data-testid="squad-goal"
-          /* … */
-          value={goal}
-        />
-
-        <button
-          data-testid="save-squad"
-          onClick={handleSave}
-          /* … */
-        >
-          {creating ? "Salvando…" : "Salvar"}
         </button>
       </div>
 
@@ -305,17 +280,30 @@ export default function Squads() {
               className="mt-1 w-full border rounded-lg px-3 py-2 resize-none"
             />
           </div>
+        </div>
 
-          {/* Campo Objetivo */}
-          <div>
-            <label className="text-sm font-medium">Objetivo</label>
-            <textarea
-              data-testid="squad-goal"
-              rows={2}
-              value={goal}
-              onChange={(e) => setGoal(e.target.value)}
-              placeholder="Ex.: entregar MVP em 2 meses"
-              className="mt-1 w-full border rounded-lg px-3 py-2 resize-none"
+        {/* Campo Objetivo */}
+        <div>
+          <label className="text-sm font-medium">Objetivo</label>
+          <textarea
+            data-testid="squad-goal"
+            rows={2}
+            value={goal}
+            onChange={(e) => setGoal(e.target.value)}
+            placeholder="Ex.: entregar MVP em 2 meses"
+            className="mt-1 w-full border rounded-lg px-3 py-2 resize-none"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <h4 className="font-semibold text-sm">Adicionar Colaborador</h4>
+          <div className="relative">
+            <FiSearch className="absolute top-2.5 left-3 text-gray-400" />
+            <input
+              value={addSearch}
+              onChange={(e) => setAddSearch(e.target.value)}
+              placeholder="Pesquisar colaborador…"
+              className="pl-10 pr-3 py-2 w-full border rounded-lg text-sm"
             />
           </div>
 
