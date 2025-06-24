@@ -19,10 +19,13 @@ jobs:
           node-version: 20
           cache: "pnpm"
 
-      - run: pnpm install --frozen-lockfile
+      - name: 📥 Instala dependências
+        run: pnpm install --frozen-lockfile
+        working-directory: frontend-squads/frontend-squads
 
       - name: 📥 Instala browsers Playwright
         run: pnpm exec playwright install --with-deps
+        working-directory: frontend-squads/frontend-squads
 
       - name: 🔍 Changed files
         id: changes
@@ -30,6 +33,7 @@ jobs:
 
       - name: 🚀 Roda testes e gera JSON
         run: pnpm exec playwright test --reporter=json
+        working-directory: frontend-squads/frontend-squads
 
       - name: 🧪 Analisa resultados e comenta no PR
         env:
@@ -38,3 +42,4 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           CHANGED_FILES: ${{ steps.changes.outputs.all_changed_files }}
         run: pnpm exec tsx scripts/analyze-results.ts
+        working-directory: frontend-squads/frontend-squads
