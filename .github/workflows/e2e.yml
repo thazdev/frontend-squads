@@ -1,0 +1,40 @@
+name: E2E Tests
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: 📥 Instala browsers Playwright
+        run: pnpm exec playwright install --with-deps
+
+      - name: 🔍 Changed files
+        id: changes
+        uses: tj-actions/changed-files@v42
+
+      - name: 🚀 Roda testes e gera JSON
+        run: pnpm exec playwright test --reporter=json
+
+      - name: 🧪 Analisa resultados e comenta no PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          CHANGED_FILES: ${{ steps.changes.outputs.all_changed_files }}
+        run: pnpm exec tsx scripts/analyze-results.ts

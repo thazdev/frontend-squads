@@ -5,6 +5,7 @@ export class RegisterPage {
 
   async open() {
     await this.page.goto("/register");
+    await this.page.waitForLoadState("networkidle");
   }
 
   async registerRandom() {

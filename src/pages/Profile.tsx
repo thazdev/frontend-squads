@@ -128,6 +128,7 @@ export default function Profile() {
                 </p>
               )}
               <button
+                data-testid="edit-profile"
                 onClick={() => {
                   setName(user.name);
                   setBio(user.bio ?? "");
@@ -135,7 +136,7 @@ export default function Profile() {
                 }}
                 className="mt-3 text-sm text-blue-600 hover:underline"
               >
-                Edit profile
+                Editar Perfil
               </button>
             </div>
           )}
