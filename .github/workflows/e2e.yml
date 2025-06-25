@@ -21,11 +21,11 @@ jobs:
 
       - name: 📥 Instala dependências
         run: pnpm install --frozen-lockfile
-        working-directory: frontend-squads/frontend-squads
+        working-directory: frontend-squads
 
       - name: 📥 Instala browsers Playwright
         run: pnpm exec playwright install --with-deps
-        working-directory: frontend-squads/frontend-squads
+        working-directory: frontend-squads
 
       - name: 🔍 Changed files
         id: changes
@@ -35,7 +35,7 @@ jobs:
         run: pnpm exec playwright test \
               --grep @smoke \
               --reporter=json=playwright-report/results.json,html=playwright-report
-        working-directory: frontend-squads/frontend-squads
+        working-directory: frontend-squads
 
       - name: 🧪 Analisa resultados e comenta no PR
         env:
