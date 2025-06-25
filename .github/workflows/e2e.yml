@@ -11,11 +11,13 @@ jobs:
         image: arangodb:latest
         ports:
           - 8529:8529
+        env:
+          ARANGO_ROOT_PASSWORD: rootpassword
         options: >-
           --health-cmd "curl --fail http://localhost:8529/_admin/server/availability || exit 1"
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
 
@@ -47,14 +49,14 @@ jobs:
         working-directory: ../backend
 
       - name: 🟢 Start backend
-        run: pnpm run dev > ../backend/backend.log 2>&1 &
+        run: pnpm run dev &
         working-directory: ../backend
         env:
           PORT: 4000
           ARANGO_URL: http://localhost:8529
           ARANGO_DATABASE: squads
-          ARANGO_USER: ""
-          ARANGO_PASSWORD: ""
+          ARANGO_USER: root
+          ARANGO_PASSWORD: rootpassword
           JWT_SECRET: 0r32ff1k0sf019r34g
 
       - name: ⏳ Wait for backend
