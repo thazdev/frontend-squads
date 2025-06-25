@@ -18,27 +18,27 @@ export class RegisterPage {
     await this.page.getByPlaceholder("Senha").first().fill(pwd);
     await this.page.getByPlaceholder("Senha").nth(1).fill(pwd);
 
-    this.page.on("request", (req) => {
-      console.log("➡️ Requisição:", req.method(), req.url());
-    });
-    this.page.on("response", (res) => {
-      console.log("⬅️ Resposta:", res.status(), res.url());
-    });
-    
-    console.log("⌛ Esperando resposta do registro...");
-    
     const [response] = await Promise.all([
-      this.page.waitForResponse((res) =>
-        res.url().includes("/register")
-      ),
+      this.page.waitForResponse((res) => {
+        if (!res.url().includes("/graphql") || res.request().method() !== "POST")
+          return false;
+        try {
+          const body = res.request().postData();
+          return !!(body && (body.includes("register") || body.includes("Register")));
+        } catch {
+          return false;
+        }
+      }),
       this.page.getByRole("button", { name: /cadastrar/i }).click(),
     ]);
+    
     
     if (response.status() !== 200) {
       console.log("❌ Registro falhou:", await response.text());
     } else {
       console.log("✅ Registro respondeu com sucesso.");
     }
+    
     
     await this.page.waitForURL("**/collaborators", { timeout: 60000 });
     
