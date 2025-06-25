@@ -23,7 +23,7 @@ jobs:
 
 
       - name: 📥 Instala browsers Playwright
-        run: pnpm exec playwright install --with-deps
+        run: pnpm exec playwright install
 
       - name: 🔍 Changed files
         id: changes
