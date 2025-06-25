@@ -18,6 +18,17 @@ export class RegisterPage {
     await this.page.getByPlaceholder("Senha").first().fill(pwd);
     await this.page.getByPlaceholder("Senha").nth(1).fill(pwd);
 
+    this.page.on('request', (request) => {
+      if (request.url().includes('/graphql') && request.method() === 'POST') {
+        const data = request.postData();
+        if (data && (data.includes('register') || data.includes('Register'))) {
+          console.log('DEBUG: Corpo da requisição:', data);
+          console.log('DEBUG: Headers:', request.headers());
+          console.log('DEBUG: URL:', request.url());
+        }
+      }
+    });
+
     const [response] = await Promise.all([
       this.page.waitForResponse((res) => {
         if (!res.url().includes("/graphql") || res.request().method() !== "POST")
