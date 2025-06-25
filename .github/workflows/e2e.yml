@@ -57,8 +57,9 @@ jobs:
           PORT: 4000
           ARANGO_URL: http://localhost:8529
           ARANGO_DATABASE: squads
+          ARANGO_USER: root
+          ARANGO_PASSWORD: root
           JWT_SECRET: 0r32ff1k0sf019r34g
-
 
 
       - name: 🪵 Show backend logs (temp)
