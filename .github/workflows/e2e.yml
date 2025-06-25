@@ -32,16 +32,15 @@ jobs:
       - name: ⬇️ Clone backend
         run: git clone https://github.com/thazdev/backend-squads.git ../backend
 
+      - name: 🐟 Start ArangoDB
+        run: docker run -d --name arango -e ARANGO_ROOT_PASSWORD=root -p 8529:8529 arangodb
+
       - name: 📦 Install backend dependencies
         run: pnpm install
         working-directory: ../backend
 
       - name: 📦 Start ArangoDB
         run: docker run -d --name arango -e ARANGO_ROOT_PASSWORD=root -p 8529:8529 arangodb
-
-      - name: ⏳ Wait for ArangoDB
-        run: npx wait-on http://localhost:8529 --timeout 60000
-
 
       - name: 🟢 Start backend
         run: pnpm start &
