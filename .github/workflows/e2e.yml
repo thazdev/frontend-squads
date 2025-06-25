@@ -46,7 +46,7 @@ jobs:
         working-directory: ../backend
 
       - name: 🟢 Start backend
-        run: TS_NODE_TRANSPILE_ONLY=1 pnpm run dev &
+        run: pnpm exec ts-node --transpile-only src/index.ts &
         working-directory: ../backend
         env:
           PORT: 4000
