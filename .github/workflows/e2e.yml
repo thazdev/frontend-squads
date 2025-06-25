@@ -5,90 +5,79 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  smoke:
     runs-on: ubuntu-latest
+
+    env:            # variáveis reutilizadas
+      PORT: 4000
+      ARANGO_URL: http://localhost:8529
+      ARANGO_DATABASE: squads
+      ARANGO_USER: root
+      ARANGO_PASSWORD: root
+      JWT_SECRET: 0r32ff1k0sf019r34g
+
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 8
+    # ----------------- toolchain -----------------
+    - uses: pnpm/action-setup@v3
+      with: { version: 8 }
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 20
-          cache: "pnpm"
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 20
+        cache: pnpm
 
-      - name: 📥 Instala dependências
-        run: pnpm install --no-frozen-lockfile
+    # ----------------- frontend -----------------
+    - name: ⬇️ Install frontend deps
+      run: pnpm install --no-frozen-lockfile
 
-      - name: 📥 Instala browsers Playwright
-        run: pnpm exec playwright install
+    # ----------------- backend -----------------
+    - name: ⬇️ Clone backend
+      run: git clone https://github.com/thazdev/backend-squads.git ../backend
 
-      - name: 🔍 Changed files
-        id: changes
-        uses: tj-actions/changed-files@v42
+    - name: ⬇️ Install backend deps
+      run: pnpm install --no-frozen-lockfile
+      working-directory: ../backend
 
-      - name: ⬇️ Clone backend
-        run: git clone https://github.com/thazdev/backend-squads.git ../backend
+    # ----------------- database -----------------
+    - name: 🐟 Start ArangoDB
+      run: |
+        docker run -d --name arango \
+          -e ARANGO_ROOT_PASSWORD=$ARANGO_PASSWORD \
+          -p 8529:8529 arangodb
+        npx wait-on tcp:8529 --timeout 120000
+        docker exec arango bash -c \
+          "arangosh --server.password $ARANGO_PASSWORD \
+            --javascript.execute-string 'try{db._createDatabase(\"$ARANGO_DATABASE\");}catch(e){}'"
 
-      - name: 🧹 Remove contêiner Arango anterior (se existir)
-        run: docker rm -f arango || true
+    # ----------------- start backend -----------------
+    - name: 🟢 Start backend
+      run: |
+        pnpm exec ts-node --transpile-only src/index.ts &
+        npx wait-on tcp:$PORT --timeout 120000
+      working-directory: ../backend
 
-      - name: 🐟 Start ArangoDB
-        run: docker run -d --name arango -e ARANGO_ROOT_PASSWORD=root -p 8529:8529 arangodb
+    # ----------------- start frontend (vite preview) -----------------
+    - name: 🖥️ Start Vite
+      run: |
+        pnpm run build
+        pnpm exec vite preview --port 5173 --strictPort &
+        npx wait-on http://localhost:5173 --timeout 120000
 
-      - name: ⏳ Wait for Arango
-        run: npx wait-on tcp:8529 --timeout 120000
+    # ----------------- run tests -----------------
+    - name: 🚀 Run Playwright smoke tests
+      run: pnpm exec playwright test tests/specs --grep @smoke --reporter=html,json
 
-      - name: 📦 Install backend dependencies
-        run: pnpm install
-        working-directory: ../backend
+    # ----------------- artefacts / logs -----------------
+    - name: Upload Playwright report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report
+        path: playwright-report
+        retention-days: 7
 
-      - name: 📦 Instalar ts-node 
-        run: pnpm add -D ts-node typescript
-        working-directory: ../backend
-
-
-      - name: 🟢 Start backend
-        run: pnpm exec ts-node --transpile-only src/index.ts > backend.log 2>&1 &
-        working-directory: ../backend
-        env:
-          PORT: 4000
-          ARANGO_URL: http://localhost:8529
-          ARANGO_DATABASE: squads
-          ARANGO_USER: root
-          ARANGO_PASSWORD: root
-          JWT_SECRET: 0r32ff1k0sf019r34g
-
-      - name: 🪵 Show backend logs (temp)
-        run: cat ../backend/backend.log || true
-
-      - name: ⏳ Wait for backend
-        run: npx wait-on tcp:4000 --timeout 120000
-
-      - name: 📄 Backend logs
-        if: always()
-        run: cat backend.log || true
-        working-directory: ../backend
-
-      - name: 🟢 Start Vite
-        run: pnpm run build && pnpm exec vite preview --port 5173 &
-
-      - name: ⏳ Wait for server
-        run: npx wait-on http://localhost:5173
-
-      - name: 🚀 Roda testes e gera JSON
-        run: pnpm exec playwright test tests/specs --grep @smoke --reporter=html,json
-
-      - name: 🧪 Analisa resultados e comenta no PR
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          CHANGED_FILES: ${{ steps.changes.outputs.all_changed_files }}
-        run: pnpm exec tsx scripts/analyze-results.ts
-
-      - name: 📄 ArangoDB logs
-        if: failure()
-        run: docker logs $(docker ps -aqf "ancestor=arangodb:latest")
+    - name: 📄 Backend logs on failure
+      if: failure()
+      run: cat ../backend/backend.log || true
