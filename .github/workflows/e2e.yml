@@ -1,4 +1,4 @@
-name: E2E Tests
+name: E2E Smoke Tests
 
 on:
   pull_request:
@@ -31,12 +31,11 @@ jobs:
         id: changes
         uses: tj-actions/changed-files@v42
 
-     - name: 🚀 Roda testes e gera JSON
-       run: pnpm exec playwright test \
-        --grep @smoke \
-        --reporter=json=playwright-report/results.json,html=playwright-report
-       working-directory: frontend-squads/frontend-squads
-
+      - name: 🚀 Roda testes e gera JSON
+        run: pnpm exec playwright test \
+              --grep @smoke \
+              --reporter=json=playwright-report/results.json,html=playwright-report
+        working-directory: frontend-squads/frontend-squads
 
       - name: 🧪 Analisa resultados e comenta no PR
         env:
