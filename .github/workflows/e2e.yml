@@ -45,7 +45,7 @@ jobs:
         run: pnpm install
         working-directory: ../backend
 
-      - name: 📦 Instalar ts-node
+      - name: 📦 Instalar ts-node 
         run: pnpm add -D ts-node typescript
         working-directory: ../backend
 
@@ -73,7 +73,7 @@ jobs:
         working-directory: ../backend
 
       - name: 🟢 Start Vite
-        run: pnpm run dev &
+        run: pnpm run build && pnpm exec vite preview --port 5173 &
 
       - name: ⏳ Wait for server
         run: npx wait-on http://localhost:5173
