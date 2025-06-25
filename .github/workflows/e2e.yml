@@ -46,15 +46,14 @@ jobs:
         working-directory: ../backend
 
       - name: 🟢 Start backend
-        run: pnpm exec ts-node --transpile-only src/index.ts > backend.log 2>&1 &
         working-directory: ../backend
+        run: pnpm exec ts-node --transpile-only src/index.ts > backend.log 2>&1 &
         env:
           PORT: 4000
           ARANGO_URL: http://localhost:8529
           ARANGO_DATABASE: squads
-          ARANGO_USER: root
-          ARANGO_PASSWORD: root
           JWT_SECRET: 0r32ff1k0sf019r34g
+
 
       - name: 🪵 Show backend logs (temp)
         run: cat ../backend/backend.log || true
