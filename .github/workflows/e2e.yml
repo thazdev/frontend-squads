@@ -8,16 +8,16 @@ jobs:
     runs-on: ubuntu-latest
     services:
       arangodb:
-        image: arangodb:latest
+        image: arangodb:3.11
         ports:
           - 8529:8529
         env:
           ARANGO_ROOT_PASSWORD: rootpassword
         options: >-
           --health-cmd "curl --fail http://localhost:8529/_admin/server/availability || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
+          --health-interval 15s
+          --health-timeout 10s
+          --health-retries 20
     steps:
       - uses: actions/checkout@v4
 
@@ -82,3 +82,7 @@ jobs:
 
       - name: 📄 Backend logs
         run: cat ../backend/backend.log || true
+
+      - name: 📄 ArangoDB logs
+        if: failure()
+        run: docker logs $(docker ps -aqf "ancestor=arangodb:latest")
