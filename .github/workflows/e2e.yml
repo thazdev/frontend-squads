@@ -29,6 +29,12 @@ jobs:
         id: changes
         uses: tj-actions/changed-files@v42
 
+      - name: 🟢 Start Vite
+        run: pnpm run dev &
+        
+      - name: ⏳ Wait for server
+        run: npx wait-on http://localhost:5173
+
       - name: 🚀 Roda testes e gera JSON
         run: pnpm exec playwright test tests/specs --grep @smoke --reporter=html,json
 
