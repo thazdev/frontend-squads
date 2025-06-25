@@ -29,8 +29,16 @@ jobs:
         id: changes
         uses: tj-actions/changed-files@v42
 
-      - name: 🟢 Start Backend
-        run: pnpm run start:api &
+      - name: ⬇️ Clone backend
+        run: git clone https://github.com/thazdev/backend-squads.git ../backend
+
+      - name: 📦 Install backend dependencies
+        run: pnpm install
+        working-directory: ../backend
+
+      - name: 🟢 Start backend
+        run: pnpm run dev &
+        working-directory: ../backend
 
       - name: ⏳ Wait for backend
         run: npx wait-on http://localhost:4000
