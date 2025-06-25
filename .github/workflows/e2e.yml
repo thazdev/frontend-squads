@@ -6,6 +6,16 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      arangodb:
+        image: arangodb:latest
+        ports:
+          - 8529:8529
+        options: >-
+          --health-cmd "curl --fail http://localhost:8529/_admin/server/availability || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
 
@@ -37,7 +47,7 @@ jobs:
         working-directory: ../backend
 
       - name: 🟢 Start backend
-        run: pnpm run dev &
+        run: pnpm run dev > ../backend/backend.log 2>&1 &
         working-directory: ../backend
         env:
           PORT: 4000
@@ -48,7 +58,7 @@ jobs:
           JWT_SECRET: 0r32ff1k0sf019r34g
 
       - name: ⏳ Wait for backend
-        run: npx wait-on http://localhost:4000 --timeout 60000
+        run: npx wait-on http://localhost:4000 --timeout 120000
 
       - name: 🟢 Start Vite
         run: pnpm run dev &
@@ -69,4 +79,4 @@ jobs:
         run: pnpm exec tsx scripts/analyze-results.ts
 
       - name: 📄 Backend logs
-        run: cat ../backend/path/do/log.log || true
+        run: cat ../backend/backend.log || true
