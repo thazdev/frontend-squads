@@ -46,7 +46,7 @@ jobs:
         working-directory: ../backend
 
       - name: 🟢 Start backend
-        run: pnpm start &
+        run: TS_NODE_TRANSPILE_ONLY=1 pnpm run dev &
         working-directory: ../backend
         env:
           PORT: 4000
@@ -57,8 +57,9 @@ jobs:
           JWT_SECRET: 0r32ff1k0sf019r34g
 
 
+
       - name: ⏳ Wait for backend
-        run: npx wait-on http://localhost:4000 --timeout 120000
+        run: npx wait-on tcp:4000 --timeout 120000
 
       - name: 🟢 Start Vite
         run: pnpm run dev &
