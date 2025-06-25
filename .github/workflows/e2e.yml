@@ -33,7 +33,7 @@ jobs:
         run: pnpm run start:api &
 
       - name: ⏳ Wait for backend
-        run: npx wait-on http://localhost:3000 # ajuste a porta conforme seu backend
+        run: npx wait-on http://localhost:4000
 
       - name: 🟢 Start Vite
         run: pnpm run dev &
