@@ -40,7 +40,7 @@ export class RegisterPage {
     }
     
     
-    await this.page.waitForURL("**/collaborators", { timeout: 60000 });
+    await this.page.waitForURL(/collaborators/i, { timeout: 60000 });
     
     
 
