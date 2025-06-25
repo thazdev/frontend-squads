@@ -90,8 +90,6 @@ jobs:
           CHANGED_FILES: ${{ steps.changes.outputs.all_changed_files }}
         run: pnpm exec tsx scripts/analyze-results.ts
 
-
-
       - name: 📄 ArangoDB logs
         if: failure()
         run: docker logs $(docker ps -aqf "ancestor=arangodb:latest")
