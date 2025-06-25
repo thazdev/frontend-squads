@@ -45,6 +45,11 @@ jobs:
         run: pnpm install
         working-directory: ../backend
 
+      - name: 📦 Instalar ts-node
+        run: pnpm add -D ts-node typescript
+        working-directory: ../backend
+
+
       - name: 🟢 Start backend
         run: pnpm exec ts-node --transpile-only src/index.ts > backend.log 2>&1 &
         working-directory: ../backend
@@ -66,7 +71,7 @@ jobs:
         if: always()
         run: cat backend.log || true
         working-directory: ../backend
-        
+
       - name: 🟢 Start Vite
         run: pnpm run dev &
 
