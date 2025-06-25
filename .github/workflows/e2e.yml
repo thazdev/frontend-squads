@@ -44,4 +44,4 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           CHANGED_FILES: ${{ steps.changes.outputs.all_changed_files }}
         run: pnpm exec tsx scripts/analyze-results.ts
-        working-directory: frontend-squads/frontend-squads
+        working-directory: frontend-squads
