@@ -39,9 +39,16 @@ jobs:
       - name: 🟢 Start backend
         run: pnpm run dev &
         working-directory: ../backend
+        env:
+          PORT: 4000
+          ARANGO_URL: http://localhost:8529
+          ARANGO_DATABASE: squads
+          ARANGO_USER: ""
+          ARANGO_PASSWORD: ""
+          JWT_SECRET: 0r32ff1k0sf019r34g
 
       - name: ⏳ Wait for backend
-        run: npx wait-on http://localhost:4000
+        run: npx wait-on http://localhost:4000 --timeout 60000
 
       - name: 🟢 Start Vite
         run: pnpm run dev &
@@ -60,3 +67,6 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           CHANGED_FILES: ${{ steps.changes.outputs.all_changed_files }}
         run: pnpm exec tsx scripts/analyze-results.ts
+
+      - name: 📄 Backend logs
+        run: cat ../backend/path/do/log.log || true
