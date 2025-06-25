@@ -40,7 +40,16 @@ export class RegisterPage {
     }
     
     
-    await this.page.waitForURL(/collaborators/i, { timeout: 60000 });
+    console.log("URL atual antes do waitForURL:", this.page.url());
+    try {
+      await this.page.waitForURL(/collaborators/i, { timeout: 60000 });
+      console.log("URL após waitForURL:", this.page.url());
+    } catch (e) {
+      console.log("Timeout esperando URL. URL atual:", this.page.url());
+      await this.page.screenshot({ path: "register-debug.png" });
+      console.log(await this.page.content());
+      throw e;
+    }
     
     
 
