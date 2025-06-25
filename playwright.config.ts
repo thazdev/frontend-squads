@@ -7,7 +7,7 @@ export default defineConfig({
   use: {
     headless: true,
     screenshot: "only-on-failure",
-    video: "on-first-retry",
+    video: "on",
     trace: "retain-on-failure",
     baseURL: "http://localhost:5173",
   },
