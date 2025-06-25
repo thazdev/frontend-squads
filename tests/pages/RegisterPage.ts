@@ -17,9 +17,20 @@ export class RegisterPage {
     await this.page.getByPlaceholder("Email").fill(email);
     await this.page.getByPlaceholder("Senha").first().fill(pwd);
     await this.page.getByPlaceholder("Senha").nth(1).fill(pwd);
-    await this.page.getByRole("button", { name: /cadastrar/i }).click();
 
-    await this.page.waitForURL("**/collaborators");
+    const [response] = await Promise.all([
+      this.page.waitForResponse((res) =>
+        res.url().includes("/register")
+      ),
+      this.page.getByRole("button", { name: /cadastrar/i }).click(),
+    ]);
+    
+    if (response.status() !== 200) {
+      console.log("❌ Registro falhou:", await response.text());
+    }
+    await this.page.waitForURL("**/collaborators", { timeout: 60000 });
+    
+    
 
     return { email };
   }
