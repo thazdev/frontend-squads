@@ -5,7 +5,7 @@ import { RegisterPage } from "../pages/RegisterPage";
 import { SquadPage } from "../pages/SquadPage";
 import { TaskPage } from "../pages/TaskPage";
 
-test("fluxo completo com colaborador, squad, task e edição de perfil", async ({
+test('@smoke fluxo completo com colaborador, squad, task e edição de perfil', async ({
   page,
 }) => {
   const timestamp = Date.now();
