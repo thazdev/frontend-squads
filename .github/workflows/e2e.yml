@@ -29,6 +29,12 @@ jobs:
         id: changes
         uses: tj-actions/changed-files@v42
 
+      - name: 🟢 Start Backend
+        run: pnpm run start:api &
+
+      - name: ⏳ Wait for backend
+        run: npx wait-on http://localhost:3000 # ajuste a porta conforme seu backend
+
       - name: 🟢 Start Vite
         run: pnpm run dev &
         
