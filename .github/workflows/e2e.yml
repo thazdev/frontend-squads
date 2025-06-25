@@ -39,7 +39,7 @@ jobs:
         run: docker run -d --name arango -e ARANGO_ROOT_PASSWORD=root -p 8529:8529 arangodb
 
       - name: ⏳ Wait for Arango
-        run: npx wait-on http://localhost:8529 --timeout 120000
+        run: npx wait-on tcp:8529 --timeout 120000
 
       - name: 📦 Install backend dependencies
         run: pnpm install
@@ -52,7 +52,10 @@ jobs:
           PORT: 4000
           ARANGO_URL: http://localhost:8529
           ARANGO_DATABASE: squads
+          ARANGO_USER: root
+          ARANGO_PASSWORD: root
           JWT_SECRET: 0r32ff1k0sf019r34g
+
 
       - name: ⏳ Wait for backend
         run: npx wait-on http://localhost:4000 --timeout 120000
