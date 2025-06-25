@@ -1,4 +1,5 @@
 name: E2E Smoke Tests
+
 on:
   pull_request:
     branches: [main]
@@ -21,7 +22,6 @@ jobs:
       - name: 📥 Instala dependências
         run: pnpm install --no-frozen-lockfile
 
-
       - name: 📥 Instala browsers Playwright
         run: pnpm exec playwright install
 
@@ -32,15 +32,18 @@ jobs:
       - name: ⬇️ Clone backend
         run: git clone https://github.com/thazdev/backend-squads.git ../backend
 
+      - name: 🧹 Remove contêiner Arango anterior (se existir)
+        run: docker rm -f arango || true
+
       - name: 🐟 Start ArangoDB
         run: docker run -d --name arango -e ARANGO_ROOT_PASSWORD=root -p 8529:8529 arangodb
+
+      - name: ⏳ Wait for Arango
+        run: npx wait-on http://localhost:8529 --timeout 120000
 
       - name: 📦 Install backend dependencies
         run: pnpm install
         working-directory: ../backend
-
-      - name: 📦 Start ArangoDB
-        run: docker run -d --name arango -e ARANGO_ROOT_PASSWORD=root -p 8529:8529 arangodb
 
       - name: 🟢 Start backend
         run: pnpm start &
@@ -51,19 +54,17 @@ jobs:
           ARANGO_DATABASE: squads
           JWT_SECRET: 0r32ff1k0sf019r34g
 
-
       - name: ⏳ Wait for backend
         run: npx wait-on http://localhost:4000 --timeout 120000
 
       - name: 🟢 Start Vite
         run: pnpm run dev &
-        
+
       - name: ⏳ Wait for server
         run: npx wait-on http://localhost:5173
 
       - name: 🚀 Roda testes e gera JSON
         run: pnpm exec playwright test tests/specs --grep @smoke --reporter=html,json
-
 
       - name: 🧪 Analisa resultados e comenta no PR
         env:
