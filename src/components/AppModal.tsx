@@ -22,6 +22,7 @@ export default function AppModal({ title, open, onClose, children }: Props) {
         <header className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
           <button
+            data-testid="close-modal"
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600"
           >

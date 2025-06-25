@@ -6,7 +6,7 @@ test("login após registro", async ({ page }) => {
   await reg.open();
   const { email } = await reg.registerRandom();
 
-  await page.goto("/login");
+  await page.goto("/");
   await page.getByPlaceholder("Email").fill(email);
   await page.locator('input[type="password"]').fill("123456");
   await page

@@ -2,13 +2,21 @@ import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests/specs",
-  reporter: [["html", { open: "never" }]],
+  timeout: 30_000,
+  retries: 1,
   use: {
-    baseURL: "http://localhost:5173",
-    trace: "on-first-retry",
-    browserName: "chromium",
     headless: true,
-    video: "on",
     screenshot: "only-on-failure",
+    video: "on-first-retry",
+    trace: "retain-on-failure",
+    baseURL: "http://localhost:5173",
   },
+  reporter: [
+    ["html", { outputFolder: "playwright-report", open: "never" }],
+    ["json", { outputFile: "playwright-report/results.json" }],
+    [
+      "html",
+      { outputFolder: "test-artifacts/playwright-report", open: "never" },
+    ],
+  ],
 });

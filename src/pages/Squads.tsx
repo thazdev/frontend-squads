@@ -184,13 +184,16 @@ export default function Squads() {
   /* candidates list */
   const [addSearch, setAddSearch] = useState("");
   const addCandidates = useMemo(() => {
-    if (!collabData?.collaborators || !detail) return [];
-    const already = new Set(detail.memberIds ?? []);
+    if (!collabData?.collaborators || !membersData?.collaborators) return [];
+    const currentMemberIds = new Set(
+      membersData.collaborators.map((m: any) => m.id)
+    );
     const q = addSearch.trim().toLowerCase();
     return collabData.collaborators.filter(
-      (c: any) => !already.has(c.id) && c.name.toLowerCase().includes(q)
+      (c: any) =>
+        !currentMemberIds.has(c.id) && c.name.toLowerCase().includes(q)
     );
-  }, [addSearch, collabData, detail]);
+  }, [addSearch, collabData, membersData]);
 
   /* ---------- UI ---------- */
   return (
@@ -293,19 +296,6 @@ export default function Squads() {
             placeholder="Ex.: entregar MVP em 2 meses"
             className="mt-1 w-full border rounded-lg px-3 py-2 resize-none"
           />
-        </div>
-
-        <div className="space-y-2">
-          <h4 className="font-semibold text-sm">Adicionar Colaborador</h4>
-          <div className="relative">
-            <FiSearch className="absolute top-2.5 left-3 text-gray-400" />
-            <input
-              value={addSearch}
-              onChange={(e) => setAddSearch(e.target.value)}
-              placeholder="Pesquisar colaborador…"
-              className="pl-10 pr-3 py-2 w-full border rounded-lg text-sm"
-            />
-          </div>
 
           {/* Erro (se houver) */}
           {errorMsg && <p className="text-sm text-red-600">{errorMsg}</p>}
@@ -443,9 +433,12 @@ export default function Squads() {
             {/* Adicionar membro */}
             <div className="space-y-2">
               <h4 className="font-semibold text-sm">Adicionar novo membro</h4>
+
+              {/* campo de busca de colaboradores */}
               <div className="relative">
                 <FiSearch className="absolute top-2.5 left-3 text-gray-400" />
                 <input
+                  data-testid="search-member"
                   value={addSearch}
                   onChange={(e) => setAddSearch(e.target.value)}
                   placeholder="Pesquisar colaborador…"
@@ -462,17 +455,15 @@ export default function Squads() {
                     >
                       <span>{c.name}</span>
                       <button
+                        data-testid="add-member"
                         onClick={async () => {
                           const res = await addMember({
-                            variables: {
-                              squadId: detail.id,
-                              memberId: c.id,
-                            },
+                            variables: { squadId: detail.id, memberId: c.id },
                           });
-                          setDetail({
-                            ...detail,
+                          setDetail((prev: any) => ({
+                            ...prev,
                             memberIds: res.data?.addMemberToSquad.memberIds,
-                          });
+                          }));
                           await refetchMembers();
                           await refetchCollabs();
                           setAddSearch("");

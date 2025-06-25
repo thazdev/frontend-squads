@@ -1,0 +1,576 @@
+{
+  "config": {
+    "configFile": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/playwright.config.ts",
+    "rootDir": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/specs",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 4
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report",
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "playwright-report/results.json"
+        }
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "test-artifacts/playwright-report",
+          "open": "never"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/specs",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.53.1",
+    "workers": 4,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "full-flow.spec.ts",
+      "file": "full-flow.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "fluxo completo com colaborador, squad, task e edição de perfil",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "timedOut",
+                  "duration": 30168,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                    },
+                    {
+                      "location": {
+                        "file": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/pages/RegisterPage.ts",
+                        "column": 46,
+                        "line": 16
+                      },
+                      "message": "Error: locator.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByPlaceholder('Nome')\u001b[22m\n\n\n\u001b[90m   at \u001b[39m../pages/RegisterPage.ts:16\n\n\u001b[0m \u001b[90m 14 |\u001b[39m     \u001b[36mconst\u001b[39m pwd \u001b[33m=\u001b[39m \u001b[32m\"123456\"\u001b[39m\u001b[33m;\u001b[39m\n \u001b[90m 15 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 16 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Nome\"\u001b[39m)\u001b[33m.\u001b[39mfill(\u001b[32m\"QA Bot\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 17 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Email\"\u001b[39m)\u001b[33m.\u001b[39mfill(email)\u001b[33m;\u001b[39m\n \u001b[90m 18 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Senha\"\u001b[39m)\u001b[33m.\u001b[39mfirst()\u001b[33m.\u001b[39mfill(pwd)\u001b[33m;\u001b[39m\n \u001b[90m 19 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Senha\"\u001b[39m)\u001b[33m.\u001b[39mnth(\u001b[35m1\u001b[39m)\u001b[33m.\u001b[39mfill(pwd)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at RegisterPage.registerRandom (/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/pages/RegisterPage.ts:16:46)\u001b[22m\n\u001b[2m    at /home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/specs/full-flow.spec.ts:15:18\u001b[22m"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2025-06-24T17:31:01.832Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/full-flow-fluxo-completo-c-12b6f-uad-task-e-edição-de-perfil/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/full-flow-fluxo-completo-c-12b6f-uad-task-e-edição-de-perfil/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/full-flow-fluxo-completo-c-12b6f-uad-task-e-edição-de-perfil/trace.zip"
+                    }
+                  ]
+                },
+                {
+                  "workerIndex": 7,
+                  "parallelIndex": 0,
+                  "status": "timedOut",
+                  "duration": 32255,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                    },
+                    {
+                      "location": {
+                        "file": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/pages/RegisterPage.ts",
+                        "column": 46,
+                        "line": 16
+                      },
+                      "message": "Error: locator.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByPlaceholder('Nome')\u001b[22m\n\n\n\u001b[90m   at \u001b[39m../pages/RegisterPage.ts:16\n\n\u001b[0m \u001b[90m 14 |\u001b[39m     \u001b[36mconst\u001b[39m pwd \u001b[33m=\u001b[39m \u001b[32m\"123456\"\u001b[39m\u001b[33m;\u001b[39m\n \u001b[90m 15 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 16 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Nome\"\u001b[39m)\u001b[33m.\u001b[39mfill(\u001b[32m\"QA Bot\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 17 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Email\"\u001b[39m)\u001b[33m.\u001b[39mfill(email)\u001b[33m;\u001b[39m\n \u001b[90m 18 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Senha\"\u001b[39m)\u001b[33m.\u001b[39mfirst()\u001b[33m.\u001b[39mfill(pwd)\u001b[33m;\u001b[39m\n \u001b[90m 19 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Senha\"\u001b[39m)\u001b[33m.\u001b[39mnth(\u001b[35m1\u001b[39m)\u001b[33m.\u001b[39mfill(pwd)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at RegisterPage.registerRandom (/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/pages/RegisterPage.ts:16:46)\u001b[22m\n\u001b[2m    at /home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/specs/full-flow.spec.ts:15:18\u001b[22m"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 1,
+                  "startTime": "2025-06-24T17:31:33.032Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/full-flow-fluxo-completo-c-12b6f-uad-task-e-edição-de-perfil-retry1/test-failed-1.png"
+                    },
+                    {
+                      "name": "video",
+                      "contentType": "video/webm",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/full-flow-fluxo-completo-c-12b6f-uad-task-e-edição-de-perfil-retry1/video.webm"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/full-flow-fluxo-completo-c-12b6f-uad-task-e-edição-de-perfil-retry1/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/full-flow-fluxo-completo-c-12b6f-uad-task-e-edição-de-perfil-retry1/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "0366a69751fb3136692b-6b22afb454b7e34ae054",
+          "file": "full-flow.spec.ts",
+          "line": 8,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "login.spec.ts",
+      "file": "login.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "login após registro",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "timedOut",
+                  "duration": 30155,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                    },
+                    {
+                      "location": {
+                        "file": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/pages/RegisterPage.ts",
+                        "column": 46,
+                        "line": 16
+                      },
+                      "message": "Error: locator.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByPlaceholder('Nome')\u001b[22m\n\n\n\u001b[90m   at \u001b[39m../pages/RegisterPage.ts:16\n\n\u001b[0m \u001b[90m 14 |\u001b[39m     \u001b[36mconst\u001b[39m pwd \u001b[33m=\u001b[39m \u001b[32m\"123456\"\u001b[39m\u001b[33m;\u001b[39m\n \u001b[90m 15 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 16 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Nome\"\u001b[39m)\u001b[33m.\u001b[39mfill(\u001b[32m\"QA Bot\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 17 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Email\"\u001b[39m)\u001b[33m.\u001b[39mfill(email)\u001b[33m;\u001b[39m\n \u001b[90m 18 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Senha\"\u001b[39m)\u001b[33m.\u001b[39mfirst()\u001b[33m.\u001b[39mfill(pwd)\u001b[33m;\u001b[39m\n \u001b[90m 19 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Senha\"\u001b[39m)\u001b[33m.\u001b[39mnth(\u001b[35m1\u001b[39m)\u001b[33m.\u001b[39mfill(pwd)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at RegisterPage.registerRandom (/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/pages/RegisterPage.ts:16:46)\u001b[22m\n\u001b[2m    at /home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/specs/login.spec.ts:7:31\u001b[22m"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2025-06-24T17:31:01.803Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/login-login-após-registro/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/login-login-após-registro/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/login-login-após-registro/trace.zip"
+                    }
+                  ]
+                },
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 1,
+                  "status": "timedOut",
+                  "duration": 32163,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                    },
+                    {
+                      "location": {
+                        "file": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/pages/RegisterPage.ts",
+                        "column": 46,
+                        "line": 16
+                      },
+                      "message": "Error: locator.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByPlaceholder('Nome')\u001b[22m\n\n\n\u001b[90m   at \u001b[39m../pages/RegisterPage.ts:16\n\n\u001b[0m \u001b[90m 14 |\u001b[39m     \u001b[36mconst\u001b[39m pwd \u001b[33m=\u001b[39m \u001b[32m\"123456\"\u001b[39m\u001b[33m;\u001b[39m\n \u001b[90m 15 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 16 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Nome\"\u001b[39m)\u001b[33m.\u001b[39mfill(\u001b[32m\"QA Bot\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 17 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Email\"\u001b[39m)\u001b[33m.\u001b[39mfill(email)\u001b[33m;\u001b[39m\n \u001b[90m 18 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Senha\"\u001b[39m)\u001b[33m.\u001b[39mfirst()\u001b[33m.\u001b[39mfill(pwd)\u001b[33m;\u001b[39m\n \u001b[90m 19 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Senha\"\u001b[39m)\u001b[33m.\u001b[39mnth(\u001b[35m1\u001b[39m)\u001b[33m.\u001b[39mfill(pwd)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at RegisterPage.registerRandom (/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/pages/RegisterPage.ts:16:46)\u001b[22m\n\u001b[2m    at /home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/specs/login.spec.ts:7:31\u001b[22m"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 1,
+                  "startTime": "2025-06-24T17:31:32.956Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/login-login-após-registro-retry1/test-failed-1.png"
+                    },
+                    {
+                      "name": "video",
+                      "contentType": "video/webm",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/login-login-após-registro-retry1/video.webm"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/login-login-após-registro-retry1/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/login-login-após-registro-retry1/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "41d3fd2474a19feb00a1-3a602e9f6d29f2bccd0b",
+          "file": "login.spec.ts",
+          "line": 4,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "squad-create.spec.ts",
+      "file": "squad-create.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "cria um squad",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 2,
+                  "status": "timedOut",
+                  "duration": 30158,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                    },
+                    {
+                      "location": {
+                        "file": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/pages/RegisterPage.ts",
+                        "column": 46,
+                        "line": 16
+                      },
+                      "message": "Error: locator.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByPlaceholder('Nome')\u001b[22m\n\n\n\u001b[90m   at \u001b[39m../pages/RegisterPage.ts:16\n\n\u001b[0m \u001b[90m 14 |\u001b[39m     \u001b[36mconst\u001b[39m pwd \u001b[33m=\u001b[39m \u001b[32m\"123456\"\u001b[39m\u001b[33m;\u001b[39m\n \u001b[90m 15 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 16 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Nome\"\u001b[39m)\u001b[33m.\u001b[39mfill(\u001b[32m\"QA Bot\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 17 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Email\"\u001b[39m)\u001b[33m.\u001b[39mfill(email)\u001b[33m;\u001b[39m\n \u001b[90m 18 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Senha\"\u001b[39m)\u001b[33m.\u001b[39mfirst()\u001b[33m.\u001b[39mfill(pwd)\u001b[33m;\u001b[39m\n \u001b[90m 19 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Senha\"\u001b[39m)\u001b[33m.\u001b[39mnth(\u001b[35m1\u001b[39m)\u001b[33m.\u001b[39mfill(pwd)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at RegisterPage.registerRandom (/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/pages/RegisterPage.ts:16:46)\u001b[22m\n\u001b[2m    at /home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/specs/squad-create.spec.ts:8:13\u001b[22m"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2025-06-24T17:31:01.829Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/squad-create-cria-um-squad/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/squad-create-cria-um-squad/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/squad-create-cria-um-squad/trace.zip"
+                    }
+                  ]
+                },
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 2,
+                  "status": "timedOut",
+                  "duration": 32246,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                    },
+                    {
+                      "location": {
+                        "file": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/pages/RegisterPage.ts",
+                        "column": 46,
+                        "line": 16
+                      },
+                      "message": "Error: locator.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByPlaceholder('Nome')\u001b[22m\n\n\n\u001b[90m   at \u001b[39m../pages/RegisterPage.ts:16\n\n\u001b[0m \u001b[90m 14 |\u001b[39m     \u001b[36mconst\u001b[39m pwd \u001b[33m=\u001b[39m \u001b[32m\"123456\"\u001b[39m\u001b[33m;\u001b[39m\n \u001b[90m 15 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 16 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Nome\"\u001b[39m)\u001b[33m.\u001b[39mfill(\u001b[32m\"QA Bot\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 17 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Email\"\u001b[39m)\u001b[33m.\u001b[39mfill(email)\u001b[33m;\u001b[39m\n \u001b[90m 18 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Senha\"\u001b[39m)\u001b[33m.\u001b[39mfirst()\u001b[33m.\u001b[39mfill(pwd)\u001b[33m;\u001b[39m\n \u001b[90m 19 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Senha\"\u001b[39m)\u001b[33m.\u001b[39mnth(\u001b[35m1\u001b[39m)\u001b[33m.\u001b[39mfill(pwd)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at RegisterPage.registerRandom (/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/pages/RegisterPage.ts:16:46)\u001b[22m\n\u001b[2m    at /home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/specs/squad-create.spec.ts:8:13\u001b[22m"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 1,
+                  "startTime": "2025-06-24T17:31:33.005Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/squad-create-cria-um-squad-retry1/test-failed-1.png"
+                    },
+                    {
+                      "name": "video",
+                      "contentType": "video/webm",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/squad-create-cria-um-squad-retry1/video.webm"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/squad-create-cria-um-squad-retry1/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/squad-create-cria-um-squad-retry1/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "aa026dd0705176bfa085-4e7c9f25808b06acfd16",
+          "file": "squad-create.spec.ts",
+          "line": 5,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "task-create.spec.ts",
+      "file": "task-create.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "cria task vinculada a squad",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 3,
+                  "status": "timedOut",
+                  "duration": 30158,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                    },
+                    {
+                      "location": {
+                        "file": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/pages/RegisterPage.ts",
+                        "column": 46,
+                        "line": 16
+                      },
+                      "message": "Error: locator.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByPlaceholder('Nome')\u001b[22m\n\n\n\u001b[90m   at \u001b[39m../pages/RegisterPage.ts:16\n\n\u001b[0m \u001b[90m 14 |\u001b[39m     \u001b[36mconst\u001b[39m pwd \u001b[33m=\u001b[39m \u001b[32m\"123456\"\u001b[39m\u001b[33m;\u001b[39m\n \u001b[90m 15 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 16 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Nome\"\u001b[39m)\u001b[33m.\u001b[39mfill(\u001b[32m\"QA Bot\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 17 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Email\"\u001b[39m)\u001b[33m.\u001b[39mfill(email)\u001b[33m;\u001b[39m\n \u001b[90m 18 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Senha\"\u001b[39m)\u001b[33m.\u001b[39mfirst()\u001b[33m.\u001b[39mfill(pwd)\u001b[33m;\u001b[39m\n \u001b[90m 19 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Senha\"\u001b[39m)\u001b[33m.\u001b[39mnth(\u001b[35m1\u001b[39m)\u001b[33m.\u001b[39mfill(pwd)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at RegisterPage.registerRandom (/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/pages/RegisterPage.ts:16:46)\u001b[22m\n\u001b[2m    at /home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/specs/task-create.spec.ts:9:13\u001b[22m"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2025-06-24T17:31:01.810Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/task-create-cria-task-vinculada-a-squad/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/task-create-cria-task-vinculada-a-squad/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/task-create-cria-task-vinculada-a-squad/trace.zip"
+                    }
+                  ]
+                },
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 3,
+                  "status": "timedOut",
+                  "duration": 32225,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                    },
+                    {
+                      "location": {
+                        "file": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/pages/RegisterPage.ts",
+                        "column": 46,
+                        "line": 16
+                      },
+                      "message": "Error: locator.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByPlaceholder('Nome')\u001b[22m\n\n\n\u001b[90m   at \u001b[39m../pages/RegisterPage.ts:16\n\n\u001b[0m \u001b[90m 14 |\u001b[39m     \u001b[36mconst\u001b[39m pwd \u001b[33m=\u001b[39m \u001b[32m\"123456\"\u001b[39m\u001b[33m;\u001b[39m\n \u001b[90m 15 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 16 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Nome\"\u001b[39m)\u001b[33m.\u001b[39mfill(\u001b[32m\"QA Bot\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 17 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Email\"\u001b[39m)\u001b[33m.\u001b[39mfill(email)\u001b[33m;\u001b[39m\n \u001b[90m 18 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Senha\"\u001b[39m)\u001b[33m.\u001b[39mfirst()\u001b[33m.\u001b[39mfill(pwd)\u001b[33m;\u001b[39m\n \u001b[90m 19 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m\"Senha\"\u001b[39m)\u001b[33m.\u001b[39mnth(\u001b[35m1\u001b[39m)\u001b[33m.\u001b[39mfill(pwd)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at RegisterPage.registerRandom (/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/pages/RegisterPage.ts:16:46)\u001b[22m\n\u001b[2m    at /home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/tests/specs/task-create.spec.ts:9:13\u001b[22m"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 1,
+                  "startTime": "2025-06-24T17:31:32.943Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/task-create-cria-task-vinculada-a-squad-retry1/test-failed-1.png"
+                    },
+                    {
+                      "name": "video",
+                      "contentType": "video/webm",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/task-create-cria-task-vinculada-a-squad-retry1/video.webm"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/task-create-cria-task-vinculada-a-squad-retry1/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/dorlijr/Desktop/work lorenzo/frontend-squads/frontend-squads/test-results/task-create-cria-task-vinculada-a-squad-retry1/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "dc2845ac317b83510066-c2a5013580b060e59975",
+          "file": "task-create.spec.ts",
+          "line": 6,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-06-24T17:31:00.922Z",
+    "duration": 64703.046,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 4,
+    "flaky": 0
+  }
+}
