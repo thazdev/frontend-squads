@@ -30,9 +30,8 @@ jobs:
         uses: tj-actions/changed-files@v42
 
       - name: 🚀 Roda testes e gera JSON
-        run: pnpm exec playwright test \
-              --grep @smoke \
-              --reporter=json=playwright-report/results.json,html=playwright-report
+        run: pnpm exec playwright test --grep @smoke --reporter=json=playwright-report/results.json,html=playwright-report
+
 
       - name: 🧪 Analisa resultados e comenta no PR
         env:
