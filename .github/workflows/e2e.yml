@@ -1,96 +1,50 @@
-name: E2E Smoke Tests
-
-on:
-  pull_request:
-    branches: [main]
+name: e2e-smoke
+on: { pull_request: { branches: [main] } }
 
 jobs:
   e2e:
     runs-on: ubuntu-latest
-
     services:
       arango:
         image: arangodb:latest
-        env:
-          ARANGO_ROOT_PASSWORD: root
-        ports:
-          - 8529:8529   # sem health-check; só esperamos a porta abrir
+        env: { ARANGO_ROOT_PASSWORD: root }
+        ports: [8529:8529]
 
     steps:
-      # 1 ▸ checkout + pnpm + Node
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
-        with: { version: 8 }
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 20
-          cache: pnpm
+    - uses: actions/checkout@v4
 
-      # 2 ▸ deps do frontend + Playwright
-      - run: pnpm install --no-frozen-lockfile
-      - run: pnpm exec playwright install --with-deps
+    # pnpm cache
+    - uses: pnpm/action-setup@v3
+      with: { version: 8 }
+    - uses: actions/setup-node@v3
+      with: { node-version: 20 }
+    - uses: actions/cache@v4
+      with:
+        path: ~/.local/share/pnpm/store/v3
+        key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
-      # 3 ▸ clone + deps do backend
-      - run: git clone --depth 1 https://github.com/thazdev/backend-squads.git backend
-      - run: pnpm install --no-frozen-lockfile
-        working-directory: backend
+    # playwright cache
+    - uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: pw-${{ runner.os }}-1.42.1
 
-      # 4 ▸ espera Arango subir e cria coleções no _system
-      - run: npx wait-on tcp:8529 --timeout 60000
-      - name: Seed ArangoDB
-        run: |
-          for col in users squads tasks; do
-            curl -s -u root:root -X POST \
-              http://localhost:8529/_api/collection \
-              -H 'Content-Type: application/json' \
-              -d "{\"name\":\"$col\"}" || true
-          done
+    - run: pnpm install --frozen-lockfile
+    - run: PW_BRANCH=chromium pnpm exec playwright install chromium
+      env:
+        PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: 1
 
-      # 5 ▸ start backend (fail-fast 30 s)
-      - name: Start backend
-        run: |
-          pnpm exec ts-node --transpile-only src/index.ts \
-            > $RUNNER_TEMP/backend.log 2>&1 &
-          BACK_PID=$!
-          for i in {1..15}; do
-            if nc -z localhost 4000; then exit 0; fi
-            sleep 2
-          done
-          cat $RUNNER_TEMP/backend.log; kill $BACK_PID; exit 1
-        working-directory: backend
-        env:
-          PORT: 4000
-          ARANGO_URL: http://localhost:8529
-          ARANGO_DATABASE: _system
-          ARANGO_USER: root
-          ARANGO_PASSWORD: root
-          JWT_SECRET: demo
+    # backend deps (monorepo ≈ 2 s porque store já está cacheada)
+    - run: pnpm install --frozen-lockfile
+      working-directory: backend
 
-      # 6 ▸ build + preview Vite
-      - run: |
-          pnpm run build
-          pnpm exec vite preview --port 5173 &
-      - run: npx wait-on http://localhost:5173 --timeout 60000
+    # seed rápido
+    - run: |
+        for col in users squads tasks; do
+          curl -s -u root:root -X POST http://localhost:8529/_api/collection \
+            -H 'Content-Type: application/json' -d "{\"name\":\"$col\"}" || true
+        done
 
-      # 7 ▸ smoke tests → salva saída em arquivo
-      - name: Run smoke tests
-        run: |
-          pnpm exec playwright test tests/specs/smoke.spec.ts \
-            --reporter=list,github | tee $RUNNER_TEMP/test-output.txt
-
-      # 8 ▸ Summary no Job Summary
-      - name: Summary 🎯
-        if: always()
-        run: |
-          PASSED=$(grep -o "✓" $RUNNER_TEMP/test-output.txt | wc -l || true)
-          FAILED=$(grep -o "✘" $RUNNER_TEMP/test-output.txt | wc -l || true)
-          echo "## 🧪 Smoke-tests"                 >> $GITHUB_STEP_SUMMARY
-          echo ""                                  >> $GITHUB_STEP_SUMMARY
-          echo "- ✅  Passed: **$PASSED**"         >> $GITHUB_STEP_SUMMARY
-          echo "- ❌  Failed: **$FAILED**"         >> $GITHUB_STEP_SUMMARY
-
-      # 9 ▸ logs p/ troubleshooting
-      - if: always()
-        run: cat $RUNNER_TEMP/backend.log || true
-      - if: failure()
-        run: docker logs $(docker ps -qf "ancestor=arangodb:latest") || true
+    # testes (servers sob controle do Playwright config)
+    - run: pnpm exec playwright test tests/specs/smoke.spec.ts \
+         --reporter=list,github,json
