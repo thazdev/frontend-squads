@@ -73,8 +73,12 @@ jobs:
     # 10 ▸ smoke tests (captura saída)
     - name: Run smoke tests
       run: |
+        # list → stdout | tee
+        # github → stdout (anotações)
+        # json → arquivo separado
         pnpm exec playwright test tests/specs/smoke.spec.ts \
-          --reporter=list,github,json | tee $RUNNER_TEMP/test-output.txt
+          --reporter=list,github,json=./play-result.json | tee $RUNNER_TEMP/test-output.txt
+
 
     # 11 ▸ resumo no Job Summary
     - name: Summary 🎯
