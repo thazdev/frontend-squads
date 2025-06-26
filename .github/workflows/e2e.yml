@@ -12,99 +12,63 @@ jobs:
         image: arangodb:latest
         env:
           ARANGO_ROOT_PASSWORD: root
-        ports:
-          - 8529:8529
+        ports: [8529:8529]
 
     steps:
-      # ▸ checkout
+      # checkout + pnpm + Node (com cache nativo)
       - uses: actions/checkout@v4
-
-      # ▸ pnpm + Node + cache da store
       - uses: pnpm/action-setup@v3
-        with:
-          version: 8
+        with: { version: 8 }
       - uses: actions/setup-node@v3
-        with:
-          node-version: 20
-      - uses: actions/cache@v4
-        with:
-          path: ~/.local/share/pnpm/store/v3
-          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: pnpm-${{ runner.os }}-
+        with: { node-version: 20, cache: pnpm }
 
-      # ▸ cache dos browsers Playwright (só Chromium)
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: pw-${{ runner.os }}-1.42.1
-
-      # ▸ dependências do frontend
+      # deps front + navegador
       - run: pnpm install --no-frozen-lockfile
-
-      # ▸ instala somente Chromium
       - run: PW_BRANCH=chromium pnpm exec playwright install chromium
-        env:
-          PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: 1
+        env: { PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: 1 }
 
-      # ▸ clone backend + dependências
-      - name: Clone + install backend
+      # backend: clone, deps, seed, start
+      - name: Backend
         run: |
           git clone --depth 1 https://github.com/thazdev/backend-squads.git backend
-          cd backend && pnpm install --no-frozen-lockfile
-
-      # ▸ seed Arango (coleções básicas)
-      - run: |
-          for col in users squads tasks; do
-            curl -s -u root:root -X POST http://localhost:8529/_api/collection \
-              -H 'Content-Type: application/json' -d "{\"name\":\"$col\"}" || true
+          pnpm --dir backend install --no-frozen-lockfile
+          for c in users squads tasks; do
+            curl -su root:root -X POST http://localhost:8529/_api/collection \
+              -H 'Content-Type: application/json' -d "{\"name\":\"$c\"}" || true
           done
+          pnpm --dir backend exec ts-node --transpile-only src/index.ts >/tmp/back.log 2>&1 &
+          for i in {1..15}; do nc -z localhost 4000 && break; sleep 2; done
 
-      # ▸ start backend
-      - name: Start backend
-        working-directory: backend
+      # frontend vite dev
+      - name: Frontend
         run: |
-          pnpm exec ts-node --transpile-only src/index.ts > /tmp/back.log 2>&1 &
-          for i in {1..15}; do nc -z localhost 4000 && exit 0; sleep 2; done
-          echo "::error::Backend não subiu"; cat /tmp/back.log; exit 1
+          pnpm exec vite --host --port 5173 >/tmp/vite.log 2>&1 &
+          for i in {1..15}; do nc -z localhost 5173 && break; sleep 2; done
 
-      # ▸ start Vite dev
-      - name: Start frontend (Vite dev)
-        run: |
-          pnpm exec vite --host --port 5173 > /tmp/vite.log 2>&1 &
-          for i in {1..15}; do nc -z localhost 5173 && exit 0; sleep 2; done
-          echo "::error::Vite não subiu"; cat /tmp/vite.log; exit 1
-
-      # ▸ smoke-tests (repórter dot – log curtíssimo)
-      - name: Run smoke tests
+      # smoke-tests (dot reporter = log minúsculo)
+      - name: Smoke
         run: |
           pnpm exec playwright test tests/specs/smoke.spec.ts \
-            --reporter=dot,github --quiet \
-            | tee "$RUNNER_TEMP/test-output.txt"
+            --reporter=dot,github --quiet | tee $RUNNER_TEMP/out.txt
 
-      # ▸ Job Summary (pass/fail + 1ª linha do erro)
+      # summary simples (conta símbolos ·/× e mostra 1ª linha de erro)
       - name: Summary 🎯
         if: always()
         run: |
-         LOG="$RUNNER_TEMP/test-output.txt"
-      
-         # contagem pelos símbolos
-         PASSED=$(grep -o "·" "$LOG" | wc -l)
-          FAILED=$(grep -o "×" "$LOG" | wc -l)
-      
-         {
-           echo "## 🧪 Smoke-tests"
-           echo "- ✅  Passed: **${PASSED}**"
-           echo "- ❌  Failed: **${FAILED}**"
-         } >> "$GITHUB_STEP_SUMMARY"
-      
-         if [ "$FAILED" -gt 0 ]; then
-           {
-             echo
-             echo "<details><summary>⛔ Failures (click)</summary>"
-             # linha do spec (começa com “1)”) + primeira linha Error:
-             awk '
-               /^[[:space:]]*[0-9]+\)/ {print "- " $0; getline; print "  " $0}
-             ' "$LOG"
-              echo '</details>'
-            } >> "$GITHUB_STEP_SUMMARY"
+          LOG=$RUNNER_TEMP/out.txt
+          PASS=$(grep -o "·" "$LOG" | wc -l)
+          FAIL=$(grep -o "×" "$LOG" | wc -l)
+
+          {
+            echo "## 🧪 Smoke-tests"
+            echo "- ✅  Passed: **$PASS**"
+            echo "- ❌  Failed: **$FAIL**"
+          } >> $GITHUB_STEP_SUMMARY
+
+          if [ "$FAIL" -gt 0 ]; then
+            echo -e "\n<details><summary>⛔ Failures</summary>" >> $GITHUB_STEP_SUMMARY
+            awk '
+              /^[[:space:]]*[0-9]+\)/ {print "- " $0; getline; print "  " $0}
+            ' "$LOG" >> $GITHUB_STEP_SUMMARY
+            echo '</details>' >> $GITHUB_STEP_SUMMARY
           fi
