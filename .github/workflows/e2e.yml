@@ -1,8 +1,6 @@
 name: e2e-smoke
-
 on:
-  pull_request:
-    branches: [main]
+  pull_request: { branches: [main] }
 
 jobs:
   e2e:
@@ -18,7 +16,7 @@ jobs:
     # ── checkout
     - uses: actions/checkout@v4
 
-    # ── pnpm + Node + cache da store
+    # ── pnpm + Node + cache
     - uses: pnpm/action-setup@v3
       with: { version: 8 }
     - uses: actions/setup-node@v3
@@ -29,34 +27,45 @@ jobs:
         key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
         restore-keys: pnpm-${{ runner.os }}-
 
-    # ── cache dos browsers Playwright (só Chromium)
+    # ── cache dos browsers (só Chromium)
     - uses: actions/cache@v4
       with:
         path: ~/.cache/ms-playwright
         key: pw-${{ runner.os }}-1.42.1
 
-    # ── dependências do frontend (raiz)
+    # ── deps do frontend
     - run: pnpm install --no-frozen-lockfile
 
-    # ── instala apenas o Chromium
+    # ── instala apenas Chromium
     - run: PW_BRANCH=chromium pnpm exec playwright install chromium
       env: { PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: 1 }
 
-    # ── clona backend e instala deps (store já cacheada → ~2 s)
-    - name: Clone + install backend
-      run: |
+    # ── clona + deps do backend
+    - run: |
         git clone --depth 1 https://github.com/thazdev/backend-squads.git backend
-        cd backend
-        pnpm install --no-frozen-lockfile
+        cd backend && pnpm install --no-frozen-lockfile
 
-    # ── seed rápido das coleções no _system
+    # ── seed coleções no _system
     - run: |
         for col in users squads tasks; do
           curl -s -u root:root -X POST http://localhost:8529/_api/collection \
-            -H 'Content-Type: application/json' \
-            -d "{\"name\":\"$col\"}" || true
+            -H 'Content-Type: application/json' -d "{\"name\":\"$col\"}" || true
         done
 
-    # ── executa testes (Playwright config já sobe backend + Vite em modo dev)
+    # ── inicia backend (porta 4000) e espera até 15×2 s
+    - name: Start backend
+      run: |
+        pnpm exec ts-node --transpile-only backend/src/index.ts &>/tmp/back.log &
+        for i in {1..15}; do nc -z localhost 4000 && exit 0; sleep 2; done
+        echo "::error::Backend não subiu"; cat /tmp/back.log; exit 1
+
+    # ── inicia Vite dev (porta 5173) e espera
+    - name: Start frontend (Vite dev)
+      run: |
+        pnpm exec vite --host --port 5173 &>/tmp/vite.log &
+        for i in {1..15}; do nc -z localhost 5173 && exit 0; sleep 2; done
+        echo "::error::Vite não subiu"; cat /tmp/vite.log; exit 1
+
+    # ── smoke tests
     - run: pnpm exec playwright test tests/specs/smoke.spec.ts \
-         --reporter=list,github,json
+           --reporter=list,github,json
