@@ -41,16 +41,6 @@ jobs:
       - name: ⏳ Wait for Arango
         run: npx wait-on tcp:8529 --timeout 120000
 
-      # - name: 🗄️ Cria DB squads no Arango
-      #   run: |
-      #     docker exec arango arangosh \
-      #       --server.password $ARANGO_PASSWORD \
-      #       --javascript.execute-string "try{db._createDatabase('$ARANGO_DATABASE');}catch(e){}"
-      
-        env:
-          ARANGO_PASSWORD: root
-          ARANGO_DATABASE: squads
-
       - name: 📦 Install backend dependencies
         run: pnpm install
         working-directory: ../backend
