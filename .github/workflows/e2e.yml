@@ -59,6 +59,15 @@ jobs:
               http://localhost:8529/_db/squads/_api/collection || true
           done
 
+      - name: 🏗️ Cria database squads se não existir
+  run: |
+    curl -u root:root -X POST http://localhost:8529/_api/database \
+      --header 'Content-Type: application/json' \
+      --data '{
+        "name": "squads"
+      }' || echo "Database já existe ou erro ignorado"
+   
+
 
       - name: 🕐 Aguarda Arango subir
         run: sleep 5
