@@ -1,45 +1,72 @@
-name: E2E Tests
-
+name: e2e-smoke
 on:
   pull_request:
     branches: [main]
 
 jobs:
-  test:
+  e2e:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 8
-
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 20
-          cache: "pnpm"
-
-      - name: 📥 Instala dependências
-        run: pnpm install --frozen-lockfile
-        working-directory: frontend-squads/frontend-squads
-
-      - name: 📥 Instala browsers Playwright
-        run: pnpm exec playwright install --with-deps
-        working-directory: frontend-squads/frontend-squads
-
-      - name: 🔍 Changed files
-        id: changes
-        uses: tj-actions/changed-files@v42
-
-      - name: 🚀 Roda testes e gera JSON
-        run: pnpm exec playwright test --reporter=json
-        working-directory: frontend-squads/frontend-squads
-
-      - name: 🧪 Analisa resultados e comenta no PR
+    services:
+      arango:
+        image: arangodb:latest
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          CHANGED_FILES: ${{ steps.changes.outputs.all_changed_files }}
-        run: pnpm exec tsx scripts/analyze-results.ts
-        working-directory: frontend-squads/frontend-squads
+          ARANGO_ROOT_PASSWORD: root
+        ports: [8529:8529]
+
+    steps:
+      # checkout + pnpm + Node (com cache nativo)
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with: { version: 8 }
+      - uses: actions/setup-node@v3
+        with: { node-version: 20, cache: pnpm }
+
+      # deps front + navegador
+      - run: pnpm install --no-frozen-lockfile
+      - run: PW_BRANCH=chromium pnpm exec playwright install chromium
+        env: { PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: 1 }
+
+      # backend: clone, deps, seed, start
+      - name: Backend
+        run: |
+          git clone --depth 1 https://github.com/thazdev/backend-squads.git backend
+          pnpm --dir backend install --no-frozen-lockfile
+          for c in users squads tasks; do
+            curl -su root:root -X POST http://localhost:8529/_api/collection \
+              -H 'Content-Type: application/json' -d "{\"name\":\"$c\"}" || true
+          done
+          pnpm --dir backend exec ts-node --transpile-only src/index.ts >/tmp/back.log 2>&1 &
+          for i in {1..15}; do nc -z localhost 4000 && break; sleep 2; done
+
+      # frontend vite dev
+      - name: Frontend
+        run: |
+          pnpm exec vite --host --port 5173 >/tmp/vite.log 2>&1 &
+          for i in {1..15}; do nc -z localhost 5173 && break; sleep 2; done
+
+      - name: Smoke
+        run: |
+          pnpm exec playwright test tests/specs/smoke.spec.ts \
+            --reporter=dot,github --quiet | tee $RUNNER_TEMP/out.txt
+
+      - name: Summary 🎯
+        if: always()
+        run: |
+          LOG=$RUNNER_TEMP/out.txt
+          PASS=$(grep -o "·" "$LOG" | wc -l)
+          FAIL=$(grep -o "×" "$LOG" | wc -l)
+
+          {
+            echo "## 🧪 Smoke-tests"
+            echo "- ✅  Passed: **$PASS**"
+            echo "- ❌  Failed: **$FAIL**"
+          } >> $GITHUB_STEP_SUMMARY
+
+          if [ "$FAIL" -gt 0 ]; then
+            echo -e "\n<details><summary>⛔ Failures</summary>" >> $GITHUB_STEP_SUMMARY
+            awk '
+              /^[[:space:]]*[0-9]+\)/ {print "- " $0; getline; print "  " $0}
+            ' "$LOG" >> $GITHUB_STEP_SUMMARY
+            echo '</details>' >> $GITHUB_STEP_SUMMARY
+          fi

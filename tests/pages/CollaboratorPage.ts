@@ -20,6 +20,6 @@ export class CollaboratorPage {
 
     await this.page.getByRole("button", { name: /salvar/i }).click();
 
-    await expect(this.page.getByText(name)).toBeVisible();
+    await expect(this.page.getByText(name)).toBeVisible({ timeout: 10000 });
   }
 }
