@@ -45,13 +45,11 @@ jobs:
           pnpm exec vite --host --port 5173 >/tmp/vite.log 2>&1 &
           for i in {1..15}; do nc -z localhost 5173 && break; sleep 2; done
 
-      # smoke-tests (dot reporter = log minúsculo)
       - name: Smoke
         run: |
           pnpm exec playwright test tests/specs/smoke.spec.ts \
             --reporter=dot,github --quiet | tee $RUNNER_TEMP/out.txt
 
-      # summary simples (conta símbolos ·/× e mostra 1ª linha de erro)
       - name: Summary 🎯
         if: always()
         run: |
