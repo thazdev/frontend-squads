@@ -91,15 +91,34 @@ jobs:
     - name: Summary 🎯
       if: always()
       run: |
-        node - <<'JS'
+        # gera resumo Markdown com Node e salva em temp
+        node - <<'NODE' > /tmp/summary.md
         const fs = require('fs');
-        const r  = JSON.parse(fs.readFileSync('play-result.json','utf8'));
-        const passed = r.suites.flatMap(s=>s.specs).filter(sp=>sp.tests[0].status==='passed').length;
-        const failed = r.suites.flatMap(s=>s.specs).filter(sp=>sp.tests[0].status==='failed');
-        console.log(`## 🧪 Smoke-tests\n- ✅  Passed: **${passed}**\n- ❌  Failed: **${failed.length}**\n`);
-        if (failed.length){
+        const data = JSON.parse(fs.readFileSync('play-result.json','utf8'));
+
+        let passed = 0;
+        const failed = [];
+
+        for (const s of data.suites || [])
+          for (const sp of s.specs || [])
+            for (const t of sp.tests || []) {
+              if (t.status === 'passed') passed++;
+              else if (t.status === 'failed') {
+                const msg = t.results[0].error?.message?.split('\n')[0] || '';
+                failed.push({ title: sp.title, msg });
+              }
+            }
+
+        console.log('## 🧪 Smoke-tests');
+        console.log(`- ✅  Passed: **${passed}**`);
+        console.log(`- ❌  Failed: **${failed.length}**\n`);
+        if (failed.length) {
           console.log('<details><summary>⛔ Failed tests</summary>');
-          failed.forEach(f=>console.log(`- **${f.title}** → ${f.tests[0].results[0].error.message.split('\\n')[0]}`));
+          failed.forEach(f => console.log(`- **${f.title}** → ${f.msg}`));
           console.log('</details>');
         }
-        JS >> $GITHUB_STEP_SUMMARY
+        NODE
+
+        # anexa ao Job Summary
+        cat /tmp/summary.md >> "$GITHUB_STEP_SUMMARY"
+
