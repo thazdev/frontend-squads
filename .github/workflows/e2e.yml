@@ -15,10 +15,10 @@ jobs:
         ports: [8529:8529]
 
     steps:
-    # ── checkout
+    # 1 ▸ checkout
     - uses: actions/checkout@v4
 
-    # ── pnpm + Node + cache da store
+    # 2 ▸ pnpm + Node + cache da store
     - uses: pnpm/action-setup@v3
       with: { version: 8 }
     - uses: actions/setup-node@v3
@@ -29,33 +29,33 @@ jobs:
         key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
         restore-keys: pnpm-${{ runner.os }}-
 
-    # ── cache do Chromium
+    # 3 ▸ cache do Chromium
     - uses: actions/cache@v4
       with:
         path: ~/.cache/ms-playwright
         key: pw-${{ runner.os }}-1.42.1
 
-    # ── deps do frontend
+    # 4 ▸ deps do frontend
     - run: pnpm install --no-frozen-lockfile
 
-    # ── instala apenas Chromium
+    # 5 ▸ instala apenas Chromium
     - run: PW_BRANCH=chromium pnpm exec playwright install chromium
       env: { PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: 1 }
 
-    # ── clone + deps backend
+    # 6 ▸ clone + deps backend
     - name: Clone + install backend
       run: |
         git clone --depth 1 https://github.com/thazdev/backend-squads.git backend
         cd backend && pnpm install --no-frozen-lockfile
 
-    # ── seed coleções
+    # 7 ▸ seed coleções
     - run: |
         for col in users squads tasks; do
           curl -s -u root:root -X POST http://localhost:8529/_api/collection \
                -H 'Content-Type: application/json' -d "{\"name\":\"$col\"}" || true
         done
 
-    # ── start backend
+    # 8 ▸ start backend
     - name: Start backend
       working-directory: backend
       run: |
@@ -63,14 +63,14 @@ jobs:
         for i in {1..15}; do nc -z localhost 4000 && exit 0; sleep 2; done
         echo "::error::Backend não subiu"; cat /tmp/back.log; exit 1
 
-    # ── start Vite dev
+    # 9 ▸ start Vite dev
     - name: Start frontend (Vite dev)
       run: |
         pnpm exec vite --host --port 5173 >/tmp/vite.log 2>&1 &
         for i in {1..15}; do nc -z localhost 5173 && exit 0; sleep 2; done
         echo "::error::Vite não subiu"; cat /tmp/vite.log; exit 1
 
-    # ── smoke tests – 1ª vez: saída curta; 2ª vez: JSON
+    # 10 ▸ smoke tests – 1ª vez: log curto; 2ª vez: JSON
     - name: Run smoke tests (quiet)
       run: |
         pnpm exec playwright test tests/specs/smoke.spec.ts \
@@ -78,22 +78,29 @@ jobs:
           | tee $RUNNER_TEMP/test-output.txt
 
         pnpm exec playwright test tests/specs/smoke.spec.ts \
-          --reporter=json > play-result.json 2>/dev/null || true
+          --reporter=json=play-result.json || true
 
-    # ── artefato JSON para IA/bots
+    # 11 ▸ artefato JSON para IA/devs
     - uses: actions/upload-artifact@v4
       with:
         name: playwright-json
         path: play-result.json
         retention-days: 5
 
-    # ── resumo enxuto + mensagem de erro
+    # 12 ▸ Summary (conta pelo JSON)
     - name: Summary 🎯
       if: always()
       run: |
         node - <<'NODE' > /tmp/summary.md
         const fs = require('fs');
-        const data = JSON.parse(fs.readFileSync('play-result.json', 'utf8'));
+
+        let data;
+        try {       
+          data = JSON.parse(fs.readFileSync('play-result.json','utf8'));
+        } catch {
+          console.log('## 🧪 Smoke-tests\nFalha ao ler play-result.json');
+          process.exit(0);
+        }
 
         let passed = 0;
         const failed = [];
@@ -102,23 +109,21 @@ jobs:
           for (const sp of s.specs || [])
             for (const t of sp.tests || []) {
               if (t.status === 'passed') passed++;
-             else if (t.status === 'failed') {
-                const msg = t.results[0].error?.message.split('\n')[0] || '';
+              else if (t.status === 'failed') {
+               const msg = (t.error?.message || '').split('\\n')[0];
                 failed.push({ title: sp.title, msg });
               }
             }
 
         console.log('## 🧪 Smoke-tests');
         console.log(`- ✅  Passed: **${passed}**`);
-        console.log(`- ❌  Failed: **${failed.length}**\n`);
+        console.log(`- ❌  Failed: **${failed.length}**\\n`);
         if (failed.length) {
           console.log('<details><summary>⛔ Failed tests</summary>');
           failed.forEach(f => console.log(`- **${f.title}** → ${f.msg}`));
           console.log('</details>');
         }
+        console.log('\\n🔗 Artefato JSON completo: _playwright-json_');
         NODE
 
-        # anexa ao Summary
-        cat /tmp/summary.md >> "$GITHUB_STEP_SUMMARY"
-
-
+                cat /tmp/summary.md >> "$GITHUB_STEP_SUMMARY"
