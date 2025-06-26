@@ -54,10 +54,16 @@ jobs:
 
     # ── inicia backend (porta 4000) e espera até 15×2 s
     - name: Start backend
+      working-directory: backend          # ← agora estamos dentro de backend
       run: |
-        pnpm exec ts-node --transpile-only backend/src/index.ts &>/tmp/back.log &
-        for i in {1..15}; do nc -z localhost 4000 && exit 0; sleep 2; done
-        echo "::error::Backend não subiu"; cat /tmp/back.log; exit 1
+        pnpm exec ts-node --transpile-only src/index.ts > /tmp/back.log 2>&1 &
+        for i in {1..15}; do
+          nc -z localhost 4000 && exit 0   # saiu se subir
+          sleep 2
+        done
+        echo "::error::Backend não subiu"
+        cat /tmp/back.log
+        exit 1
 
     # ── inicia Vite dev (porta 5173) e espera
     - name: Start frontend (Vite dev)
