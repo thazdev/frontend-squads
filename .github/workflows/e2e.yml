@@ -60,14 +60,12 @@ jobs:
           done
 
       - name: 🏗️ Cria database squads se não existir
-  run: |
-    curl -u root:root -X POST http://localhost:8529/_api/database \
-      --header 'Content-Type: application/json' \
-      --data '{
-        "name": "squads"
-      }' || echo "Database já existe ou erro ignorado"
-   
-
+        run: |
+          curl -u root:root -X POST http://localhost:8529/_api/database \
+          --header 'Content-Type: application/json' \
+          --data '{
+             "name": "squads"
+          }' || echo "Database já existe ou erro ignorado"
 
       - name: 🕐 Aguarda Arango subir
         run: sleep 5
@@ -76,7 +74,7 @@ jobs:
         run: pnpm install
         working-directory: ../backend
 
-      - name: 📦 Instalar ts-node 
+      - name: 📦 Instalar ts-node
         run: pnpm add -D ts-node typescript
         working-directory: ../backend
 
