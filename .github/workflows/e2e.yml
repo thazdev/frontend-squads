@@ -8,7 +8,7 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
 
-    # 1. ArangoDB sobe como service
+    # ArangoDB como service, **sem** health-check (vamos esperar via step)
     services:
       arango:
         image: arangodb:latest
@@ -16,15 +16,9 @@ jobs:
           ARANGO_ROOT_PASSWORD: root
         ports:
           - 8529:8529
-        # Health-check com autenticação (evita o “unhealthy” falso)
-        options: >-
-          --health-cmd="curl -f -u root:root http://localhost:8529/_api/version || exit 1"
-          --health-interval=5s
-          --health-timeout=2s
-          --health-retries=25
 
     steps:
-      # 2. Checkout + pnpm + Node
+      # 1. Checkout + pnpm + Node
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v3
         with: { version: 8 }
@@ -33,17 +27,20 @@ jobs:
           node-version: 20
           cache: pnpm
 
-      # 3. Instala dependências do frontend (raiz do repo)
+      # 2. Instala deps do frontend
       - run: pnpm install --no-frozen-lockfile
-      - run: pnpm exec playwright install --with-deps   # fonts/libs p/ CI
+      - run: pnpm exec playwright install --with-deps
 
-      # 4. Clona e instala backend
+      # 3. Clona e instala backend
       - run: git clone --depth 1 https://github.com/thazdev/backend-squads.git backend
       - run: pnpm install --no-frozen-lockfile
         working-directory: backend
 
-      # 5. Seed do Arango (DB + coleções)
-      - name: Seed ArangoDB (db+collections)
+      # 4. Espera Arango ficar acessível
+      - run: npx wait-on tcp:8529 --timeout 120000
+
+      # 5. Seed: cria DB e coleções
+      - name: Seed ArangoDB
         run: |
           docker run --rm --network host arangodb arangosh \
             --server.endpoint tcp://127.0.0.1:8529 \
@@ -55,7 +52,7 @@ jobs:
               ['users','squads','tasks'].forEach(c => { if (!db._collection(c)) db._create(c); });
             JS
 
-      # 6. Sobe backend na porta 4000
+      # 6. Sobe backend (porta 4000)
       - run: pnpm exec ts-node --transpile-only src/index.ts &
         working-directory: backend
         env:
@@ -67,13 +64,13 @@ jobs:
           JWT_SECRET: test
       - run: npx wait-on tcp:4000
 
-      # 7. Build + preview do Vite na porta 5173
+      # 7. Build + preview do Vite (porta 5173)
       - run: pnpm run build && pnpm exec vite preview --port 5173 &
       - run: npx wait-on http://localhost:5173
 
       # 8. Executa smoke-tests
       - run: pnpm exec playwright test tests/specs --grep @smoke --reporter=list
 
-      # 9. Se falhar, mostra logs do Arango
+      # 9. Logs do Arango em caso de falha
       - if: failure()
-        run: docker logs $(docker ps -qf "name=arango") || true
+        run: docker logs $(docker ps -qf "ancestor=arangodb:latest") || true
