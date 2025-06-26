@@ -16,48 +16,50 @@ jobs:
           - 8529:8529
 
     steps:
-      # ── checkout
+      # ▸ checkout
       - uses: actions/checkout@v4
 
-      # ── pnpm + Node + cache
+      # ▸ pnpm + Node + cache da store
       - uses: pnpm/action-setup@v3
         with:
           version: 8
       - uses: actions/setup-node@v3
         with:
           node-version: 20
-      - uses: actions/cache@v4          # cache pnpm store
+      - uses: actions/cache@v4
         with:
           path: ~/.local/share/pnpm/store/v3
           key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: pnpm-${{ runner.os }}-
-      - uses: actions/cache@v4          # cache Playwright Chromium
+
+      # ▸ cache dos browsers Playwright (só Chromium)
+      - uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
           key: pw-${{ runner.os }}-1.42.1
 
-      # ── deps do frontend
+      # ▸ dependências do frontend
       - run: pnpm install --no-frozen-lockfile
 
-      # ── instala apenas Chromium
+      # ▸ instala somente Chromium
       - run: PW_BRANCH=chromium pnpm exec playwright install chromium
         env:
           PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: 1
 
-      # ── clone + deps backend
+      # ▸ clone backend + dependências
       - name: Clone + install backend
         run: |
           git clone --depth 1 https://github.com/thazdev/backend-squads.git backend
           cd backend && pnpm install --no-frozen-lockfile
 
-      # ── seed Arango (coleções users / squads / tasks)
+      # ▸ seed Arango (coleções básicas)
       - run: |
           for col in users squads tasks; do
             curl -s -u root:root -X POST http://localhost:8529/_api/collection \
               -H 'Content-Type: application/json' -d "{\"name\":\"$col\"}" || true
           done
 
-      # ── start backend
+      # ▸ start backend
       - name: Start backend
         working-directory: backend
         run: |
@@ -65,29 +67,31 @@ jobs:
           for i in {1..15}; do nc -z localhost 4000 && exit 0; sleep 2; done
           echo "::error::Backend não subiu"; cat /tmp/back.log; exit 1
 
-      # ── start Vite dev
+      # ▸ start Vite dev
       - name: Start frontend (Vite dev)
         run: |
           pnpm exec vite --host --port 5173 > /tmp/vite.log 2>&1 &
           for i in {1..15}; do nc -z localhost 5173 && exit 0; sleep 2; done
           echo "::error::Vite não subiu"; cat /tmp/vite.log; exit 1
 
-      # ── smoke-tests (repórter dot, log curtíssimo)
+      # ▸ smoke-tests (repórter dot – log curtíssimo)
       - name: Run smoke tests
         run: |
           pnpm exec playwright test tests/specs/smoke.spec.ts \
             --reporter=dot,github --quiet \
-            | tee $RUNNER_TEMP/test-output.txt
+            | tee "$RUNNER_TEMP/test-output.txt"
 
-      # ── Job Summary
+      # ▸ Job Summary (pass/fail + 1ª linha do erro)
       - name: Summary 🎯
         if: always()
         run: |
           LOG="$RUNNER_TEMP/test-output.txt"
 
           # contagem final
-          PASSED=$(grep -Eo '[0-9]+ passed'  "$LOG" | tail -1 | awk '{print $1}' || echo 0)
-          FAILED=$(grep -Eo '[0-9]+ failed'  "$LOG" | tail -1 | awk '{print $1}' || echo 0)
+          PASSED=$(grep -Eo '[0-9]+ passed'  "$LOG" | tail -1 | awk '{print $1}')
+          FAILED=$(grep -Eo '[0-9]+ failed'  "$LOG" | tail -1 | awk '{print $1}')
+          PASSED=${PASSED:-0}
+          FAILED=${FAILED:-0}
 
           {
             echo "## 🧪 Smoke-tests"
@@ -95,14 +99,15 @@ jobs:
             echo "- ❌  Failed: **${FAILED}**"
           } >> "$GITHUB_STEP_SUMMARY"
 
+          # detalhes das falhas
           if [ "$FAILED" -gt 0 ]; then
-            echo -e "\n<details><summary>⛔ Failures (click)</summary>" >> "$GITHUB_STEP_SUMMARY"
-
-            # pega a linha do spec e a 1ª linha “Error: …”
-            awk '
-              /^[[:space:]]*[0-9]+\)/ { print "- " substr($0, index($0,$4)); want=1; next }
-              want && /Error:/        { print "  " $0; want=0 }
-            ' "$LOG" >> "$GITHUB_STEP_SUMMARY"
-
-            echo '</details>' >> "$GITHUB_STEP_SUMMARY"
+            {
+              echo
+              echo "<details><summary>⛔ Failures (click)</summary>"
+              # linha do spec + primeira linha “Error: …”
+              awk '
+                /^[[:space:]]*[0-9]+\)/ {line=$0; getline; print "- " line "\n  " $0}
+              ' "$LOG"
+              echo '</details>'
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
