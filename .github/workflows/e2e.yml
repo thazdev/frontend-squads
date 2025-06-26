@@ -91,10 +91,9 @@ jobs:
     - name: Summary 🎯
       if: always()
       run: |
-        # gera resumo Markdown com Node e salva em temp
         node - <<'NODE' > /tmp/summary.md
         const fs = require('fs');
-        const data = JSON.parse(fs.readFileSync('play-result.json','utf8'));
+        const data = JSON.parse(fs.readFileSync('play-result.json', 'utf8'));
 
         let passed = 0;
         const failed = [];
@@ -103,8 +102,8 @@ jobs:
           for (const sp of s.specs || [])
             for (const t of sp.tests || []) {
               if (t.status === 'passed') passed++;
-              else if (t.status === 'failed') {
-                const msg = t.results[0].error?.message?.split('\n')[0] || '';
+             else if (t.status === 'failed') {
+                const msg = t.results[0].error?.message.split('\n')[0] || '';
                 failed.push({ title: sp.title, msg });
               }
             }
@@ -119,6 +118,7 @@ jobs:
         }
         NODE
 
-        # anexa ao Job Summary
+        # anexa ao Summary
         cat /tmp/summary.md >> "$GITHUB_STEP_SUMMARY"
+
 
