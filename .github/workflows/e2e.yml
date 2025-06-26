@@ -41,13 +41,23 @@ jobs:
       - name: ⏳ Wait for Arango
         run: npx wait-on tcp:8529 --timeout 120000
 
-      - name: 📦 Cria collections no Arango
-        run: |
-          for name in users squads tasks; do
-            curl -u root:root -X POST http://localhost:8529/_db/_system/_api/collection \
-              -H 'Content-Type: application/json' \
-              -d "{\"name\": \"$name\", \"type\": 2}" || true
-          done
+      - name: 🔧 Cria collections no ArangoDB
+  run: |
+    curl -X POST --user root:root \
+      --header "Content-Type: application/json" \
+      --data '{"name": "users"}' \
+      http://localhost:8529/_db/squads/_api/collection || true
+
+    curl -X POST --user root:root \
+      --header "Content-Type: application/json" \
+      --data '{"name": "squads"}' \
+      http://localhost:8529/_db/squads/_api/collection || true
+
+    curl -X POST --user root:root \
+      --header "Content-Type: application/json" \
+      --data '{"name": "tasks"}' \
+      http://localhost:8529/_db/squads/_api/collection || true
+
 
       - name: 🕐 Aguarda Arango subir
         run: sleep 10    
