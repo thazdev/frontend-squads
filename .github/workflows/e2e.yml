@@ -42,15 +42,18 @@ jobs:
       # 5. Seed: cria DB e coleções
       - name: Seed ArangoDB
         run: |
-          docker run --rm --network host arangodb arangosh \
-            --server.endpoint tcp://127.0.0.1:8529 \
-            --server.password root \
-            --javascript.execute <<'JS'
-              const db = require('@arangodb').db;
-              if (!db._databases().includes('squads')) db._createDatabase('squads');
-              db._useDatabase('squads');
-              ['users','squads','tasks'].forEach(c => { if (!db._collection(c)) db._create(c); });
-            JS
+          # cria DB (ignora erro se já existir)
+          curl -s -u root:root -X POST http://localhost:8529/_api/database \
+              -H 'Content-Type: application/json' \
+              -d '{"name":"squads"}' || true
+
+          # cria coleções essenciais
+          for col in users squads tasks; do
+            curl -s -u root:root -X POST http://localhost:8529/_db/squads/_api/collection \
+                -H 'Content-Type: application/json' \
+                -d "{\"name\":\"$col\"}" || true
+          done
+
 
       # 6. Sobe backend (porta 4000)
       - run: pnpm exec ts-node --transpile-only src/index.ts &
