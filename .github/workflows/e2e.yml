@@ -1,6 +1,8 @@
 name: e2e-smoke
+
 on:
-  pull_request: { branches: [main] }
+  pull_request:
+    branches: [main]
 
 jobs:
   e2e:
@@ -13,10 +15,10 @@ jobs:
         ports: [8529:8529]
 
     steps:
-    # ── checkout
+    # 1 ▸ checkout
     - uses: actions/checkout@v4
 
-    # ── pnpm + Node + cache
+    # 2 ▸ pnpm + Node + store-cache
     - uses: pnpm/action-setup@v3
       with: { version: 8 }
     - uses: actions/setup-node@v3
@@ -27,51 +29,68 @@ jobs:
         key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
         restore-keys: pnpm-${{ runner.os }}-
 
-    # ── cache dos browsers (só Chromium)
+    # 3 ▸ cache só do Chromium
     - uses: actions/cache@v4
       with:
         path: ~/.cache/ms-playwright
         key: pw-${{ runner.os }}-1.42.1
 
-    # ── deps do frontend
+    # 4 ▸ deps do frontend
     - run: pnpm install --no-frozen-lockfile
 
-    # ── instala apenas Chromium
+    # 5 ▸ instala Chromium
     - run: PW_BRANCH=chromium pnpm exec playwright install chromium
       env: { PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: 1 }
 
-    # ── clona + deps do backend
-    - run: |
+    # 6 ▸ clone backend + deps
+    - name: Clone + install backend
+      run: |
         git clone --depth 1 https://github.com/thazdev/backend-squads.git backend
         cd backend && pnpm install --no-frozen-lockfile
 
-    # ── seed coleções no _system
+    # 7 ▸ seed coleções users/squads/tasks no _system
     - run: |
         for col in users squads tasks; do
           curl -s -u root:root -X POST http://localhost:8529/_api/collection \
             -H 'Content-Type: application/json' -d "{\"name\":\"$col\"}" || true
         done
 
-    # ── inicia backend (porta 4000) e espera até 15×2 s
+    # 8 ▸ start backend (porta 4000) – fail-fast
     - name: Start backend
-      working-directory: backend          # ← agora estamos dentro de backend
+      working-directory: backend
       run: |
         pnpm exec ts-node --transpile-only src/index.ts > /tmp/back.log 2>&1 &
-        for i in {1..15}; do
-          nc -z localhost 4000 && exit 0   # saiu se subir
-          sleep 2
-        done
-        echo "::error::Backend não subiu"
-        cat /tmp/back.log
-        exit 1
+        for i in {1..15}; do nc -z localhost 4000 && exit 0; sleep 2; done
+        echo "::error::Backend não subiu"; cat /tmp/back.log; exit 1
 
-    # ── inicia Vite dev (porta 5173) e espera
+    # 9 ▸ start Vite dev (porta 5173)
     - name: Start frontend (Vite dev)
       run: |
         pnpm exec vite --host --port 5173 &>/tmp/vite.log &
         for i in {1..15}; do nc -z localhost 5173 && exit 0; sleep 2; done
         echo "::error::Vite não subiu"; cat /tmp/vite.log; exit 1
 
-    # ── smoke tests
-    - run: pnpm exec playwright test tests/specs/smoke.spec.ts \
-           --reporter=list,github,json
+    # 10 ▸ smoke tests (captura saída)
+    - name: Run smoke tests
+      run: |
+        pnpm exec playwright test tests/specs/smoke.spec.ts \
+          --reporter=list,github,json | tee $RUNNER_TEMP/test-output.txt
+
+    # 11 ▸ resumo no Job Summary
+    - name: Summary 🎯
+      if: always()
+      run: |
+        PASSED=$(grep -o "✓" $RUNNER_TEMP/test-output.txt | wc -l || true)
+        FAILED=$(grep -o "✘" $RUNNER_TEMP/test-output.txt | wc -l || true)
+        echo "## 🧪 Smoke-tests"               >> $GITHUB_STEP_SUMMARY
+        echo ""                                >> $GITHUB_STEP_SUMMARY
+        echo "- ✅  Passed: **$PASSED**"       >> $GITHUB_STEP_SUMMARY
+        echo "- ❌  Failed: **$FAILED**"       >> $GITHUB_STEP_SUMMARY
+        echo ""                                >> $GITHUB_STEP_SUMMARY
+        if [ "$FAILED" -gt 0 ]; then
+          echo "<details><summary>⛔ Error output</summary>" >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+          grep -E "^ *✘" $RUNNER_TEMP/test-output.txt \
+            | sed 's/^/    /' >> $GITHUB_STEP_SUMMARY || true
+          echo '</details>' >> $GITHUB_STEP_SUMMARY
+        fi

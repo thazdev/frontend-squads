@@ -7,22 +7,20 @@ test.describe("@smoke", () => {
   test("registration-ok", async ({ page }) => {
     const reg = new RegisterPage(page);
     await reg.open();
-    const res = await reg.submit();   // gera novo e-mail
+    const res = await reg.submit();          // e-mail novo
     reusedEmail = res.email;
 
     expect(res.json.errors).toBeFalsy();
     expect(res.json.data.register.token).toBeTruthy();
   });
 
+  // ← sem test.fail() → falha conta como erro real
   test("registration-duplicate", async ({ page }) => {
-    // 👉 este teste *tem de falhar*
-    test.fail(true, "Deve retornar erro de e-mail duplicado");
-
     const reg = new RegisterPage(page);
     await reg.open();
     const res = await reg.submit(reusedEmail); // mesmo e-mail
 
-    // afirmação contrária -- gera erro
+    // força erro (vai receber errors[])
     expect(res.json.errors).toBeFalsy();
   });
 });
