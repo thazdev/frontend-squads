@@ -43,19 +43,22 @@ jobs:
 
       - name: 🔧 Cria database squads
         run: |
+          echo "Criando banco squads..."
           curl -s -X POST --user root:root \
             -H 'Content-Type: application/json' \
             -d '{"name":"squads"}' \
             http://localhost:8529/_api/database || true
 
-      - name: 🔧 Cria collections no ArangoDB
+      - name: 🔧 Cria collections no banco squads
         run: |
           for name in users squads tasks; do
+            echo "Criando collection: $name"
             curl -s -X POST --user root:root \
               -H 'Content-Type: application/json' \
               -d "{\"name\":\"$name\"}" \
               http://localhost:8529/_db/squads/_api/collection || true
           done
+
 
       - name: 🕐 Aguarda Arango subir
         run: sleep 5
