@@ -44,7 +44,7 @@ jobs:
       - name: 📦 Cria collections no Arango
         run: |
           for name in users squads tasks; do
-            curl -u root:root -X POST http://localhost:8529/_api/collection \
+            curl -u root:root -X POST http://localhost:8529/_db/_system/_api/collection \
               -H 'Content-Type: application/json' \
               -d "{\"name\": \"$name\", \"type\": 2}" || true
           done
