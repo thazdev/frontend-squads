@@ -41,18 +41,15 @@ jobs:
       - name: ⏳ Wait for Arango
         run: npx wait-on tcp:8529 --timeout 120000
 
-      - name: 🔧 Cria database e collections no ArangoDB
+      - name: 🔧 Cria database squads
         run: |
-          # Cria o database 'squads' com permissões para root
           curl -s -X POST --user root:root \
             -H 'Content-Type: application/json' \
-            -d '{
-                  "name":"squads",
-                  "users":[{ "username":"root", "passwd":"root", "active":true }]
-                }' \
+            -d '{"name":"squads"}' \
             http://localhost:8529/_api/database || true
 
-          # Cria as collections dentro do banco squads
+      - name: 🔧 Cria collections no ArangoDB
+        run: |
           for name in users squads tasks; do
             curl -s -X POST --user root:root \
               -H 'Content-Type: application/json' \
