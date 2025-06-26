@@ -14,10 +14,10 @@ jobs:
         env:
           ARANGO_ROOT_PASSWORD: root
         ports:
-          - 8529:8529   # sem health-check; só esperamos a porta abrir
+          - 8529:8529   # sem health-check; apenas esperamos a porta abrir
 
     steps:
-      # 1 — checkout + pnpm + Node
+      # 1 ▸ checkout + pnpm + Node
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v3
         with: { version: 8 }
@@ -26,32 +26,46 @@ jobs:
           node-version: 20
           cache: pnpm
 
-      # 2 — deps do frontend + Playwright
+      # 2 ▸ dependências do frontend + browsers Playwright
       - name: Install frontend deps
         run: pnpm install --no-frozen-lockfile
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps
 
-      # 3 — clone + deps do backend
+      # 3 ▸ clone + deps do backend
       - name: Clone backend
         run: git clone --depth 1 https://github.com/thazdev/backend-squads.git backend
       - name: Install backend deps
         run: pnpm install --no-frozen-lockfile
         working-directory: backend
 
-      # 4 — espera Arango responder (máx. 60 s)
+      # 4 ▸ espera Arango responder
       - name: Wait Arango (porta 8529)
         run: npx wait-on tcp:8529 --timeout 60000
 
-      # 5 — start backend e aborta rápido se não subir
+      # 4.1 ▸ SEED — cria DB e coleções básicas
+      - name: Seed ArangoDB
+        run: |
+          # cria database squads (ignora erro se já existir)
+          curl -s -u root:root -X POST http://localhost:8529/_api/database \
+            -H 'Content-Type: application/json' \
+            -d '{"name":"squads"}' || true
+          # cria coleções users, squads, tasks
+          for col in users squads tasks; do
+            curl -s -u root:root -X POST \
+              http://localhost:8529/_db/squads/_api/collection \
+              -H 'Content-Type: application/json' \
+              -d "{\"name\":\"$col\"}" || true
+          done
+
+      # 5 ▸ inicia backend, tenta 30 s e falha rápido se não subir
       - name: Start backend
         run: |
           pnpm exec ts-node --transpile-only src/index.ts \
             > $RUNNER_TEMP/backend.log 2>&1 &
           BACK_PID=$!
 
-          # tenta conectar por 30 s (15× a cada 2 s)
-          for i in {1..15}; do
+          for i in {1..15}; do       # 30 s (15x2s)
             if nc -z localhost 4000; then
               echo "Backend up ✅"
               exit 0
@@ -72,7 +86,7 @@ jobs:
           ARANGO_PASSWORD: root
           JWT_SECRET: demo
 
-      # 6 — build + preview do Vite
+      # 6 ▸ build + preview do Vite
       - name: Build & preview Vite
         run: |
           pnpm run build
@@ -80,11 +94,11 @@ jobs:
       - name: Wait frontend (porta 5173)
         run: npx wait-on http://localhost:5173 --timeout 60000
 
-      # 7 — smoke tests
+      # 7 ▸ smoke-tests
       - name: Run smoke tests
         run: pnpm exec playwright test tests/specs/smoke.spec.ts --reporter=list
 
-      # 8 — logs sempre / Arango só em falha
+      # 8 ▸ logs sempre / Arango só em falha
       - name: Backend log
         if: always()
         run: cat $RUNNER_TEMP/backend.log || true
