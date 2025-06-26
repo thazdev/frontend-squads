@@ -2,8 +2,7 @@ name: E2E Smoke Tests
 
 on:
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   e2e:
@@ -15,42 +14,55 @@ jobs:
         env:
           ARANGO_ROOT_PASSWORD: root
         ports:
-          - 8529:8529   # sem health-check; apenas esperamos a porta abrir
+          - 8529:8529   # sem health-check; só esperamos a porta abrir
 
     steps:
-      # 1. checkout + pnpm + Node
+      # 1 — checkout + pnpm + Node
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v3
-        with:
-          version: 8
+        with: { version: 8 }
       - uses: actions/setup-node@v3
         with:
           node-version: 20
           cache: pnpm
 
-      # 2. dependências do frontend
+      # 2 — deps do frontend + Playwright
       - name: Install frontend deps
         run: pnpm install --no-frozen-lockfile
       - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps   # mantém --with-deps
+        run: pnpm exec playwright install --with-deps
 
-      # 3. backend em pasta separada
+      # 3 — clone + deps do backend
       - name: Clone backend
         run: git clone --depth 1 https://github.com/thazdev/backend-squads.git backend
       - name: Install backend deps
         run: pnpm install --no-frozen-lockfile
         working-directory: backend
 
-      # 4. espera Arango subir
+      # 4 — espera Arango responder (máx. 60 s)
       - name: Wait Arango (porta 8529)
-        run: npx wait-on tcp:8529 --timeout 120000
+        run: npx wait-on tcp:8529 --timeout 60000
 
-      # 5. inicia backend e grava log
+      # 5 — start backend e aborta rápido se não subir
       - name: Start backend
         run: |
           pnpm exec ts-node --transpile-only src/index.ts \
             > $RUNNER_TEMP/backend.log 2>&1 &
-          echo "Backend PID: $!"
+          BACK_PID=$!
+
+          # tenta conectar por 30 s (15× a cada 2 s)
+          for i in {1..15}; do
+            if nc -z localhost 4000; then
+              echo "Backend up ✅"
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo "::error::Backend NÃO subiu em 30 s, log ↓↓↓"
+          cat $RUNNER_TEMP/backend.log || true
+          kill $BACK_PID || true
+          exit 1
         working-directory: backend
         env:
           PORT: 4000
@@ -59,24 +71,22 @@ jobs:
           ARANGO_USER: root
           ARANGO_PASSWORD: root
           JWT_SECRET: demo
-      - name: Wait backend (porta 4000)
-        run: npx wait-on tcp:4000 --timeout 180000
 
-      # 6. build + preview do Vite
+      # 6 — build + preview do Vite
       - name: Build & preview Vite
         run: |
           pnpm run build
           pnpm exec vite preview --port 5173 &
       - name: Wait frontend (porta 5173)
-        run: npx wait-on http://localhost:5173 --timeout 120000
+        run: npx wait-on http://localhost:5173 --timeout 60000
 
-      # 7. smoke-tests
+      # 7 — smoke tests
       - name: Run smoke tests
         run: pnpm exec playwright test tests/specs/smoke.spec.ts --reporter=list
 
-      # 8. logs úteis em caso de falha
+      # 8 — logs sempre / Arango só em falha
       - name: Backend log
-        if: failure()
+        if: always()
         run: cat $RUNNER_TEMP/backend.log || true
 
       - name: Arango logs
