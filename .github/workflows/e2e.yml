@@ -102,4 +102,4 @@ jobs:
           failed.forEach(f=>console.log(`- **${f.title}** → ${f.tests[0].results[0].error.message.split('\\n')[0]}`));
           console.log('</details>');
         }
-    JS >> $GITHUB_STEP_SUMMARY
+        JS >> $GITHUB_STEP_SUMMARY
