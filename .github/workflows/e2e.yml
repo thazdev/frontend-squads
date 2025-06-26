@@ -49,6 +49,9 @@ jobs:
               -d "{\"name\": \"$name\", \"type\": 2}" || true
           done
 
+      - name: 🕐 Aguarda criação das collections
+        run: sleep 5
+
       - name: 📦 Install backend dependencies
         run: pnpm install
         working-directory: ../backend
