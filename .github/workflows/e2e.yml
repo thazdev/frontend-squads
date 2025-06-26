@@ -49,6 +49,9 @@ jobs:
               -d "{\"name\": \"$name\", \"type\": 2}" || true
           done
 
+      - name: 🕐 Aguarda Arango subir
+        run: sleep 10    
+
       - name: 🕐 Aguarda collections estarem disponíveis
         run: |
           for name in users squads tasks; do
