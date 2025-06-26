@@ -5,118 +5,74 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  e2e:
     runs-on: ubuntu-latest
+
+    # 1. Arango como service: nasce junto com o runner e é health-checked
+    services:
+      arango:
+        image: arangodb:latest
+        env:
+          ARANGO_ROOT_PASSWORD: root
+        ports:
+          - 8529:8529
+        options: >-
+          --health-cmd="curl -f http://localhost:8529/_api/version || exit 1"
+          --health-interval=5s
+          --health-timeout=2s
+          --health-retries=25
+
     steps:
+      # 2. Checkout + Node + pnpm
       - uses: actions/checkout@v4
-
       - uses: pnpm/action-setup@v3
-        with:
-          version: 8
-
+        with: { version: 8 }
       - uses: actions/setup-node@v3
         with:
           node-version: 20
-          cache: "pnpm"
+          cache: pnpm
 
-      - name: 📥 Instala dependências
-        run: pnpm install --no-frozen-lockfile
+      # 3. Instala front (raiz do repo)
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm exec playwright install --with-deps   # não remova --with-deps
 
-      - name: 📥 Instala browsers Playwright
-        run: pnpm exec playwright install
+      # 4. Clona e instala backend
+      - run: git clone --depth 1 https://github.com/thazdev/backend-squads.git backend
+      - run: pnpm install --no-frozen-lockfile
+        working-directory: backend
 
-      - name: 🔍 Changed files
-        id: changes
-        uses: tj-actions/changed-files@v42
-
-      - name: ⬇️ Clone backend
-        run: git clone https://github.com/thazdev/backend-squads.git ../backend
-
-      - name: 🧹 Remove contêiner Arango anterior (se existir)
-        run: docker rm -f arango || true
-
-      - name: 🐟 Start ArangoDB
-        run: docker run -d --name arango -e ARANGO_ROOT_PASSWORD=root -p 8529:8529 arangodb
-
-      - name: ⏳ Wait for Arango
-        run: npx wait-on tcp:8529 --timeout 120000
-
-      - name: 🔧 Cria database squads
+      # 5. Cria DB e coleções (uma vez só)
+      - name: Seed ArangoDB (db+collections)
         run: |
-          echo "Criando banco squads..."
-          curl -s -X POST --user root:root \
-            -H 'Content-Type: application/json' \
-            -d '{"name":"squads"}' \
-            http://localhost:8529/_api/database || true
+          docker run --rm --network host arangodb arangosh \
+            --server.endpoint tcp://127.0.0.1:8529 \
+            --server.password root \
+            --javascript.execute <<'JS'
+              const db = require('@arangodb').db;
+              if (!db._databases().includes('squads')) db._createDatabase('squads');
+              db._useDatabase('squads');
+              ['users','squads','tasks'].forEach(c => { if (!db._collection(c)) db._create(c); });
+            JS
 
-      - name: 🔧 Cria collections no banco squads
-        run: |
-          for name in users squads tasks; do
-            echo "Criando collection: $name"
-            curl -s -X POST --user root:root \
-              -H 'Content-Type: application/json' \
-              -d "{\"name\":\"$name\"}" \
-              http://localhost:8529/_db/squads/_api/collection || true
-          done
-
-      - name: 🏗️ Cria database squads se não existir
-        run: |
-          curl -u root:root -X POST http://localhost:8529/_api/database \
-          --header 'Content-Type: application/json' \
-          --data '{
-             "name": "squads"
-          }' || echo "Database já existe ou erro ignorado"
-
-      - name: 🕐 Aguarda Arango subir
-        run: sleep 5
-
-      - name: 📦 Install backend dependencies
-        run: pnpm install
-        working-directory: ../backend
-
-      - name: 📦 Instalar ts-node
-        run: pnpm add -D ts-node typescript
-        working-directory: ../backend
-
-      - name: 🟢 Start backend
-        run: pnpm exec ts-node --transpile-only src/index.ts > backend.log 2>&1 &
-        working-directory: ../backend
+      # 6. Sobe backend (porta 4000)
+      - run: pnpm exec ts-node --transpile-only src/index.ts &
+        working-directory: backend
         env:
           PORT: 4000
           ARANGO_URL: http://localhost:8529
           ARANGO_DATABASE: squads
           ARANGO_USER: root
           ARANGO_PASSWORD: root
-          JWT_SECRET: 0r32ff1k0sf019r34g
+          JWT_SECRET: test
+      - run: npx wait-on tcp:4000
 
-      - name: 🪵 Show backend logs (temp)
-        run: cat ../backend/backend.log || true
+      # 7. Build + preview do Vite (porta 5173)
+      - run: pnpm run build && pnpm exec vite preview --port 5173 &
+      - run: npx wait-on http://localhost:5173
 
-      - name: ⏳ Wait for backend
-        run: npx wait-on tcp:4000 --timeout 120000
+      # 8. Roda smoke-tests
+      - run: pnpm exec playwright test tests/specs --grep @smoke --reporter=list
 
-      - name: 📄 Backend logs
-        if: always()
-        run: cat backend.log || true
-        working-directory: ../backend
-
-      - name: 🟢 Start Vite
-        run: pnpm run build && pnpm exec vite preview --port 5173 &
-
-      - name: ⏳ Wait for server
-        run: npx wait-on http://localhost:5173
-
-      - name: 🚀 Roda testes e gera JSON
-        run: pnpm exec playwright test tests/specs --grep @smoke --reporter=html,json
-
-      - name: 🧪 Analisa resultados e comenta no PR
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          CHANGED_FILES: ${{ steps.changes.outputs.all_changed_files }}
-        run: pnpm exec tsx scripts/analyze-results.ts
-
-      - name: 📄 ArangoDB logs
-        if: failure()
-        run: docker logs $(docker ps -aqf "ancestor=arangodb:latest")
+      # 9. Se falhar, joga logs pra debug
+      - if: failure()
+        run: docker logs $(docker ps -qf "name=arango") || true
