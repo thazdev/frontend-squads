@@ -91,28 +91,15 @@ jobs:
     - name: Summary 🎯
       if: always()
       run: |
-        PASSED=$(grep -o "·" $RUNNER_TEMP/test-output.txt | wc -l || true)
-        FAILED=$(grep -o "[F×]" $RUNNER_TEMP/test-output.txt | wc -l || true)
-
-        echo "## 🧪 Smoke-tests"             >> $GITHUB_STEP_SUMMARY
-        echo "- ✅  Passed: **$PASSED**"    >> $GITHUB_STEP_SUMMARY
-        echo "- ❌  Failed: **$FAILED**"    >> $GITHUB_STEP_SUMMARY
-        echo ""                              >> $GITHUB_STEP_SUMMARY
-
-        if [ "$FAILED" -gt 0 ]; then
-          echo "<details><summary>⛔ Failed tests</summary>" >> $GITHUB_STEP_SUMMARY
-          # extrai mensagem curta de play-result.json
-          node - <<'JS' play-result.json >> $GITHUB_STEP_SUMMARY
-const fs = require('fs');
-const r  = JSON.parse(fs.readFileSync(process.argv[1],'utf8'));
-for (const s of r.suites||[])
-  for (const spec of s.specs||[])
-    for (const t of spec.tests||[])
-      for (const res of t.results||[])
-        if (res.status === 'failed') {
-          const msg = (res.error?.message||'').split('\n')[0];
-          console.log(`- **${spec.title}** → ${msg}`);
+        node - <<'JS'
+        const fs = require('fs');
+        const r  = JSON.parse(fs.readFileSync('play-result.json','utf8'));
+        const passed = r.suites.flatMap(s=>s.specs).filter(sp=>sp.tests[0].status==='passed').length;
+        const failed = r.suites.flatMap(s=>s.specs).filter(sp=>sp.tests[0].status==='failed');
+        console.log(`## 🧪 Smoke-tests\n- ✅  Passed: **${passed}**\n- ❌  Failed: **${failed.length}**\n`);
+        if (failed.length){
+          console.log('<details><summary>⛔ Failed tests</summary>');
+          failed.forEach(f=>console.log(`- **${f.title}** → ${f.tests[0].results[0].error.message.split('\\n')[0]}`));
+          console.log('</details>');
         }
-JS
-          echo '</details>' >> $GITHUB_STEP_SUMMARY
-        fi
+    JS >> $GITHUB_STEP_SUMMARY
