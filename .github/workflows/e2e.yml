@@ -69,8 +69,12 @@ jobs:
     # smoke tests — agora json vai para playwright-report/result.json
     - name: Run smoke tests
       run: |
+        # dot → .·F…
+        # github → anotações no PR
+        # json  → playwright-report/result.json  (artefato p/ Claude)
         pnpm exec playwright test tests/specs/smoke.spec.ts \
-          --reporter=list,github,json | tee $RUNNER_TEMP/test-output.txt
+          --reporter=dot,github,json | tee $RUNNER_TEMP/test-output.txt
+
 
     # artefato JSON para IA/bots
     - uses: actions/upload-artifact@v4
