@@ -29,13 +29,13 @@ jobs:
         path: ~/.cache/ms-playwright
         key: pw-${{ runner.os }}-1.42.1
 
-    - run: pnpm install --frozen-lockfile
+    - run: pnpm install --no-frozen-lockfile
     - run: PW_BRANCH=chromium pnpm exec playwright install chromium
       env:
         PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: 1
 
     # backend deps (monorepo ≈ 2 s porque store já está cacheada)
-    - run: pnpm install --frozen-lockfile
+    - run: pnpm install --no-frozen-lockfile   # backend
       working-directory: backend
 
     # seed rápido
