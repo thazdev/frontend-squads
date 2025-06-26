@@ -41,43 +41,27 @@ jobs:
       - name: ⏳ Wait for Arango
         run: npx wait-on tcp:8529 --timeout 120000
 
-      - name: 🔧 Cria collections no ArangoDB
-  run: |
-    curl -X POST --user root:root \
-      --header "Content-Type: application/json" \
-      --data '{"name": "users"}' \
-      http://localhost:8529/_db/squads/_api/collection || true
-
-    curl -X POST --user root:root \
-      --header "Content-Type: application/json" \
-      --data '{"name": "squads"}' \
-      http://localhost:8529/_db/squads/_api/collection || true
-
-    curl -X POST --user root:root \
-      --header "Content-Type: application/json" \
-      --data '{"name": "tasks"}' \
-      http://localhost:8529/_db/squads/_api/collection || true
-
-
-      - name: 🕐 Aguarda Arango subir
-        run: sleep 10    
-
-      - name: 🕐 Aguarda collections estarem disponíveis
+      - name: 🔧 Cria database e collections no ArangoDB
         run: |
+          # Cria o database 'squads' com permissões para root
+          curl -s -X POST --user root:root \
+            -H 'Content-Type: application/json' \
+            -d '{
+                  "name":"squads",
+                  "users":[{ "username":"root", "passwd":"root", "active":true }]
+                }' \
+            http://localhost:8529/_api/database || true
+
+          # Cria as collections dentro do banco squads
           for name in users squads tasks; do
-            echo "Verificando collection: $name"
-            for i in {1..10}; do
-              status=$(curl -s -o /dev/null -w "%{http_code}" -u root:root http://localhost:8529/_db/_system/_api/collection/$name)
-              if [ "$status" = "200" ]; then
-                echo "✅ Collection $name disponível"
-                break
-              else
-                echo "⏳ Tentando novamente ($i)..."
-                sleep 2
-              fi
-            done
+            curl -s -X POST --user root:root \
+              -H 'Content-Type: application/json' \
+              -d "{\"name\":\"$name\"}" \
+              http://localhost:8529/_db/squads/_api/collection || true
           done
 
+      - name: 🕐 Aguarda Arango subir
+        run: sleep 5
 
       - name: 📦 Install backend dependencies
         run: pnpm install
@@ -87,14 +71,13 @@ jobs:
         run: pnpm add -D ts-node typescript
         working-directory: ../backend
 
-
       - name: 🟢 Start backend
         run: pnpm exec ts-node --transpile-only src/index.ts > backend.log 2>&1 &
         working-directory: ../backend
         env:
           PORT: 4000
           ARANGO_URL: http://localhost:8529
-          ARANGO_DATABASE: _system
+          ARANGO_DATABASE: squads
           ARANGO_USER: root
           ARANGO_PASSWORD: root
           JWT_SECRET: 0r32ff1k0sf019r34g
