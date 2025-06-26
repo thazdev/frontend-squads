@@ -6,79 +6,103 @@ on:
 jobs:
   e2e:
     runs-on: ubuntu-latest
+
     services:
       arango:
         image: arangodb:latest
-        env: { ARANGO_ROOT_PASSWORD: root }
-        ports: [8529:8529]
+        env:
+          ARANGO_ROOT_PASSWORD: root
+        ports:
+          - 8529:8529
 
     steps:
-      - uses: actions/checkout@v4 # ── checkout
-      - uses: pnpm/action-setup@v3 # ── pnpm & cache
-        with: { version: 8 }
+      # ── checkout
+      - uses: actions/checkout@v4
+
+      # ── pnpm + Node + cache
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 8
       - uses: actions/setup-node@v3
-        with: { node-version: 20 }
-      - uses: actions/cache@v4 # cache store
+        with:
+          node-version: 20
+      - uses: actions/cache@v4          # cache pnpm store
         with:
           path: ~/.local/share/pnpm/store/v3
           key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: pnpm-${{ runner.os }}-
-      - uses: actions/cache@v4 # cache Chromium
+      - uses: actions/cache@v4          # cache Playwright Chromium
         with:
           path: ~/.cache/ms-playwright
           key: pw-${{ runner.os }}-1.42.1
 
-      - run: pnpm install --no-frozen-lockfile # deps front
-      - run: PW_BRANCH=chromium pnpm exec playwright install chromium
-        env: { PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: 1 }
+      # ── deps do frontend
+      - run: pnpm install --no-frozen-lockfile
 
-      - name: Clone + install backend # deps back
+      # ── instala apenas Chromium
+      - run: PW_BRANCH=chromium pnpm exec playwright install chromium
+        env:
+          PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: 1
+
+      # ── clone + deps backend
+      - name: Clone + install backend
         run: |
           git clone --depth 1 https://github.com/thazdev/backend-squads.git backend
           cd backend && pnpm install --no-frozen-lockfile
 
-      - run: | # seed Arango
+      # ── seed Arango (coleções users / squads / tasks)
+      - run: |
           for col in users squads tasks; do
-            curl -u root:root -s -X POST http://localhost:8529/_api/collection \
+            curl -s -u root:root -X POST http://localhost:8529/_api/collection \
               -H 'Content-Type: application/json' -d "{\"name\":\"$col\"}" || true
           done
 
-      - name: Start backend # start backend
+      # ── start backend
+      - name: Start backend
         working-directory: backend
         run: |
-          pnpm exec ts-node --transpile-only src/index.ts >/tmp/back.log 2>&1 &
+          pnpm exec ts-node --transpile-only src/index.ts > /tmp/back.log 2>&1 &
           for i in {1..15}; do nc -z localhost 4000 && exit 0; sleep 2; done
           echo "::error::Backend não subiu"; cat /tmp/back.log; exit 1
 
-      - name: Start frontend (Vite dev) # start Vite
+      # ── start Vite dev
+      - name: Start frontend (Vite dev)
         run: |
-          pnpm exec vite --host --port 5173 >/tmp/vite.log 2>&1 &
+          pnpm exec vite --host --port 5173 > /tmp/vite.log 2>&1 &
           for i in {1..15}; do nc -z localhost 5173 && exit 0; sleep 2; done
           echo "::error::Vite não subiu"; cat /tmp/vite.log; exit 1
 
-      # ── smoke tests com repórter dot (log curtíssimo)
+      # ── smoke-tests (repórter dot, log curtíssimo)
       - name: Run smoke tests
         run: |
           pnpm exec playwright test tests/specs/smoke.spec.ts \
             --reporter=dot,github --quiet \
             | tee $RUNNER_TEMP/test-output.txt
 
-      # ── Job Summary simples
+      # ── Job Summary
       - name: Summary 🎯
-  if: always()
-  run: |
-    # conta passed/failed
-    PASSED=$(grep -Eo '[0-9]+ passed'  $RUNNER_TEMP/test-output.txt | head -1 | awk '{print $1}' || echo 0)
-    FAILED=$(grep -Eo '[0-9]+ failed'  $RUNNER_TEMP/test-output.txt | head -1 | awk '{print $1}' || echo 0)
+        if: always()
+        run: |
+          LOG="$RUNNER_TEMP/test-output.txt"
 
-    echo "## 🧪 Smoke-tests"               >> $GITHUB_STEP_SUMMARY
-    echo "- ✅  Passed: **${PASSED}**"     >> $GITHUB_STEP_SUMMARY
-    echo "- ❌  Failed: **${FAILED}**"     >> $GITHUB_STEP_SUMMARY
+          # contagem final
+          PASSED=$(grep -Eo '[0-9]+ passed'  "$LOG" | tail -1 | awk '{print $1}' || echo 0)
+          FAILED=$(grep -Eo '[0-9]+ failed'  "$LOG" | tail -1 | awk '{print $1}' || echo 0)
 
-    if [ "$FAILED" -gt 0 ]; then
-      echo -e "\n<details><summary>⛔ Failures (click)</summary>" >> $GITHUB_STEP_SUMMARY
-      # extrai bloco de 2 linhas: título do teste + 1ª linha de erro
-      awk '/^[[:space:]]*[0-9]+\)/{p=2} p && p--' $RUNNER_TEMP/test-output.txt \
-        | sed -E 's/^[[:space:]]*[0-9]+\)//;s/^  */- /' >> $GITHUB_STEP_SUMMARY
-      echo '</details>' >> $GITHUB_STEP_SUMMARY
-    fi
+          {
+            echo "## 🧪 Smoke-tests"
+            echo "- ✅  Passed: **${PASSED}**"
+            echo "- ❌  Failed: **${FAILED}**"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$FAILED" -gt 0 ]; then
+            echo -e "\n<details><summary>⛔ Failures (click)</summary>" >> "$GITHUB_STEP_SUMMARY"
+
+            # pega a linha do spec e a 1ª linha “Error: …”
+            awk '
+              /^[[:space:]]*[0-9]+\)/ { print "- " substr($0, index($0,$4)); want=1; next }
+              want && /Error:/        { print "  " $0; want=0 }
+            ' "$LOG" >> "$GITHUB_STEP_SUMMARY"
+
+            echo '</details>' >> "$GITHUB_STEP_SUMMARY"
+          fi
