@@ -85,29 +85,26 @@ jobs:
       - name: Summary 🎯
         if: always()
         run: |
-          LOG="$RUNNER_TEMP/test-output.txt"
-
-          # contagem final
-          PASSED=$(grep -Eo '[0-9]+ passed'  "$LOG" | tail -1 | awk '{print $1}')
-          FAILED=$(grep -Eo '[0-9]+ failed'  "$LOG" | tail -1 | awk '{print $1}')
-          PASSED=${PASSED:-0}
-          FAILED=${FAILED:-0}
-
-          {
-            echo "## 🧪 Smoke-tests"
-            echo "- ✅  Passed: **${PASSED}**"
-            echo "- ❌  Failed: **${FAILED}**"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-          # detalhes das falhas
-          if [ "$FAILED" -gt 0 ]; then
-            {
-              echo
-              echo "<details><summary>⛔ Failures (click)</summary>"
-              # linha do spec + primeira linha “Error: …”
-              awk '
-                /^[[:space:]]*[0-9]+\)/ {line=$0; getline; print "- " line "\n  " $0}
-              ' "$LOG"
+         LOG="$RUNNER_TEMP/test-output.txt"
+      
+         # contagem pelos símbolos
+         PASSED=$(grep -o "·" "$LOG" | wc -l)
+          FAILED=$(grep -o "×" "$LOG" | wc -l)
+      
+         {
+           echo "## 🧪 Smoke-tests"
+           echo "- ✅  Passed: **${PASSED}**"
+           echo "- ❌  Failed: **${FAILED}**"
+         } >> "$GITHUB_STEP_SUMMARY"
+      
+         if [ "$FAILED" -gt 0 ]; then
+           {
+             echo
+             echo "<details><summary>⛔ Failures (click)</summary>"
+             # linha do spec (começa com “1)”) + primeira linha Error:
+             awk '
+               /^[[:space:]]*[0-9]+\)/ {print "- " $0; getline; print "  " $0}
+             ' "$LOG"
               echo '</details>'
             } >> "$GITHUB_STEP_SUMMARY"
           fi
