@@ -1,31 +1,42 @@
 name: E2E Smoke Tests
-on: { pull_request: { branches: [main] } }
+
+on:
+  pull_request:
+    branches: [main]
+
 jobs:
   e2e:
     runs-on: ubuntu-latest
+
     services:
       arango:
         image: arangodb:latest
-        env: { ARANGO_ROOT_PASSWORD: root }
-        ports: [8529:8529]
+        env:
+          ARANGO_ROOT_PASSWORD: root
+        ports:
+          - 8529:8529   # sem health-check; só esperamos a porta abrir
 
     steps:
+      # 1 ▸ checkout + pnpm + Node
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v3
         with: { version: 8 }
       - uses: actions/setup-node@v3
-        with: { node-version: 20, cache: pnpm }
+        with:
+          node-version: 20
+          cache: pnpm
 
+      # 2 ▸ deps do frontend + Playwright
       - run: pnpm install --no-frozen-lockfile
       - run: pnpm exec playwright install --with-deps
 
+      # 3 ▸ clone + deps do backend
       - run: git clone --depth 1 https://github.com/thazdev/backend-squads.git backend
       - run: pnpm install --no-frozen-lockfile
         working-directory: backend
 
+      # 4 ▸ espera Arango subir e cria coleções no _system
       - run: npx wait-on tcp:8529 --timeout 60000
-
-      # SEED corrigido → coleções no _system
       - name: Seed ArangoDB
         run: |
           for col in users squads tasks; do
@@ -35,6 +46,7 @@ jobs:
               -d "{\"name\":\"$col\"}" || true
           done
 
+      # 5 ▸ start backend (fail-fast 30 s)
       - name: Start backend
         run: |
           pnpm exec ts-node --transpile-only src/index.ts \
@@ -54,13 +66,30 @@ jobs:
           ARANGO_PASSWORD: root
           JWT_SECRET: demo
 
+      # 6 ▸ build + preview Vite
       - run: |
           pnpm run build
           pnpm exec vite preview --port 5173 &
       - run: npx wait-on http://localhost:5173 --timeout 60000
 
-      - run: pnpm exec playwright test tests/specs/smoke.spec.ts --reporter=list
+      # 7 ▸ smoke tests → salva saída em arquivo
+      - name: Run smoke tests
+        run: |
+          pnpm exec playwright test tests/specs/smoke.spec.ts \
+            --reporter=list,github | tee $RUNNER_TEMP/test-output.txt
 
+      # 8 ▸ Summary no Job Summary
+      - name: Summary 🎯
+        if: always()
+        run: |
+          PASSED=$(grep -o "✓" $RUNNER_TEMP/test-output.txt | wc -l || true)
+          FAILED=$(grep -o "✘" $RUNNER_TEMP/test-output.txt | wc -l || true)
+          echo "## 🧪 Smoke-tests"                 >> $GITHUB_STEP_SUMMARY
+          echo ""                                  >> $GITHUB_STEP_SUMMARY
+          echo "- ✅  Passed: **$PASSED**"         >> $GITHUB_STEP_SUMMARY
+          echo "- ❌  Failed: **$FAILED**"         >> $GITHUB_STEP_SUMMARY
+
+      # 9 ▸ logs p/ troubleshooting
       - if: always()
         run: cat $RUNNER_TEMP/backend.log || true
       - if: failure()

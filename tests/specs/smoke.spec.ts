@@ -18,9 +18,9 @@ test.describe("@smoke", () => {
   test("registration-duplicate", async ({ page }) => {
     const reg = new RegisterPage(page);
     await reg.open();
-    const res = await reg.submit(reusedEmail);  // usa MESMO email
-
-    // *** ASSERT propositalmente errado para demonstrar falha ***
-    expect(res.json.errors).toBeFalsy();        // vai falhar
+    const res = await reg.submit(reusedEmail);
+  
+    // o back-end deve MESMO devolver erro de e-mail duplicado
+    expect(res.json.errors).toBeTruthy();           // agora passa
   });
 });
