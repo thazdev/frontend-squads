@@ -41,6 +41,14 @@ jobs:
       - name: ⏳ Wait for Arango
         run: npx wait-on tcp:8529 --timeout 120000
 
+      - name: 📦 Cria collections no Arango
+        run: |
+          for name in users squads tasks; do
+            curl -u root:root -X POST http://localhost:8529/_api/collection \
+              -H 'Content-Type: application/json' \
+              -d "{\"name\": \"$name\", \"type\": 2}" || true
+          done
+
       - name: 📦 Install backend dependencies
         run: pnpm install
         working-directory: ../backend
